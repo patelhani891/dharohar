@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ધરોહર - Dharohar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+Gujarati:wght@300;400;600&family=Rasa:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { box-sizing: border-box; }
+    
+    :root {
+      --royal-gold: #D4AF37;
+      --blood-red: #8B0000;
+      --dark-bg: #050505;
+      --card-bg: #111;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html, body {
+      height: 100%;
+      background: var(--dark-bg);
+      font-family: 'Cinzel', serif;
+      overflow-x: hidden;
+      color: #e0e0e0;
+    }
+    
+    .app-wrapper {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      position: relative;
+      z-index: 1;
+    }
+    
+    #bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.8;
+    }
+    
+    .gujarati-text {
+      font-family: 'Noto Sans Gujarati', sans-serif;
+    }
+
+    .portal-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+      transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+    
+    .portal-container.lifted {
+      transform: translateY(-100vh);
+    }
+    
+    .portal-side {
+      position: relative;
+      width: 50%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+      overflow: hidden;
+    }
+    
+    .portal-left {
+      background: radial-gradient(circle at center, #1a1500 0%, #050505 80%);
+      border-right: 1px solid var(--royal-gold);
+    }
+    
+    .portal-right {
+      background: radial-gradient(circle at center, #1a0505 0%, #050505 80%);
+      border-left: 1px solid var(--blood-red);
+    }
+    
+    .portal-left:hover { width: 60%; background: radial-gradient(circle at center, #2a2200 0%, #050505 80%); }
+    .portal-right:hover { width: 60%; background: radial-gradient(circle at center, #2a0505 0%, #050505 80%); }
+    
+    .portal-icon {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 2rem;
+      filter: drop-shadow(0 0 25px rgba(212, 175, 55, 0.5));
+      transition: transform 0.4s ease;
+    }
+    
+    .portal-right .portal-icon {
+      filter: drop-shadow(0 0 25px rgba(139, 0, 0, 0.5));
+    }
+    
+    .portal-side:hover .portal-icon {
+      transform: scale(1.1);
+    }
+    
+    .portal-title {
+      font-size: 3.5rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      font-family: 'Rasa', serif;
+    }
+    
+    .portal-left .portal-title {
+      color: var(--royal-gold);
+      text-shadow: 0 0 30px rgba(212, 175, 55, 0.6);
+    }
+    
+    .portal-right .portal-title {
+      color: var(--blood-red);
+      text-shadow: 0 0 30px rgba(139, 0, 0, 0.6);
+    }
+    
+    .portal-subtitle {
+      font-size: 1.1rem;
+      letter-spacing: 0.4em;
+      opacity: 0.8;
+      color: #ccc;
+      margin-bottom: 2.5rem;
+    }
+    
+    .enter-hint {
+      font-size: 0.9rem;
+      letter-spacing: 0.25em;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 12px 24px;
+      border-radius: 4px;
+      opacity: 0.7;
+      transition: all 0.5s ease;
+      background: rgba(255,255,255,0.05);
+    }
+    
+    .portal-side:hover .enter-hint {
+      opacity: 1;
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.5);
+    }
+    
+    .main-content {
+      width: 100%;
+      min-height: 100vh;
+      background: transparent; 
+    }
+    
+    .nav-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 3rem;
+      background: rgba(5, 5, 5, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-brand {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #fff;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      font-family: 'Rasa', serif;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav-link {
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      color: #aaa;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .nav-link:hover { color: #fff; }
+    .nav-link.gold:hover { color: var(--royal-gold); text-shadow: 0 0 10px var(--royal-gold); }
+    .nav-link.red:hover { color: var(--blood-red); text-shadow: 0 0 10px var(--blood-red); }
+    
+    .section-header {
+      text-align: center;
+      padding: 6rem 2rem 3rem;
+      position: relative;
+    }
+    
+    .section-title {
+      font-size: 3.5rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      font-family: 'Rasa', serif;
+    }
+    
+    .section-title.gold {
+      color: var(--royal-gold);
+      text-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
+    }
+    
+    .section-title.red {
+      color: var(--blood-red);
+      text-shadow: 0 0 40px rgba(139, 0, 0, 0.3);
+    }
+    
+    .section-line {
+      width: 120px;
+      height: 2px;
+      margin: 1.5rem auto;
+      background: linear-gradient(90deg, transparent, var(--royal-gold), transparent);
+    }
+    
+    .section-line.red {
+      background: linear-gradient(90deg, transparent, var(--blood-red), transparent);
+    }
+    
+    .timeline-container {
+      position: relative;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .timeline-axis {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(180deg, transparent, var(--royal-gold), transparent);
+      transform: translateX(-50%);
+    }
+    
+    .timeline-item {
+      position: relative;
+      width: 45%;
+      padding: 2.5rem;
+      margin-bottom: 4rem;
+      background: #0a0a0a;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    
+    .timeline-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(212, 175, 55, 0.15);
+      border-color: var(--royal-gold);
+      background: #111;
+    }
+    
+    .timeline-item:nth-child(even) { margin-left: auto; }
+    
+    .timeline-item::after {
+      content: '';
+      position: absolute;
+      top: 2.5rem;
+      width: 12px;
+      height: 12px;
+      background: var(--dark-bg);
+      border: 2px solid var(--royal-gold);
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+    
+    .timeline-item:nth-child(odd)::after { right: -61px; } 
+    .timeline-item:nth-child(even)::after { left: -62px; }
+    
+    .timeline-item:hover::after {
+      background: var(--royal-gold);
+      box-shadow: 0 0 15px var(--royal-gold);
+    }
+    
+    .timeline-title {
+      font-size: 1.8rem;
+      color: var(--royal-gold);
+      margin-bottom: 0.5rem;
+      font-family: 'Rasa', serif;
+    }
+    
+    .timeline-gujarati {
+      font-size: 1.1rem;
+      color: #ddd;
+      margin-bottom: 1rem;
+      font-style: italic;
+    }
+    
+    .timeline-desc {
+      font-size: 1rem;
+      color: #aaa;
+      line-height: 1.8;
+    }
+    
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2.5rem;
+      padding: 2rem;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    
+    .character-card {
+      perspective: 1000px;
+      height: 450px;
+      cursor: pointer;
+    }
+    
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-style: preserve-3d;
+    }
+    
+    .character-card:hover .card-inner {
+      transform: rotateY(180deg);
+    }
+    
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    
+    .card-front {
+      background: #111;
+      background-image: linear-gradient(to bottom right, #1a1a1a, #0a0a0a);
+      border-top: 3px solid var(--blood-red);
+    }
+    
+    .card-back {
+      transform: rotateY(180deg);
+      background: #0f0505;
+      background-image: radial-gradient(circle at center, #2a0a0a 0%, #000 90%);
+      border: 1px solid var(--blood-red);
+    }
+    
+    .character-name {
+      font-size: 2.5rem;
+      color: #fff;
+      font-family: 'Rasa', serif;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 10px rgba(0,0,0,0.8);
+    }
+    
+    .character-role {
+      font-size: 1rem;
+      color: var(--blood-red);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border-top: 1px solid rgba(139, 0, 0, 0.3);
+      padding-top: 1rem;
+      margin-top: 0.5rem;
+    }
+    
+    .card-back-title {
+      font-size: 1.2rem;
+      color: var(--blood-red);
+      margin-bottom: 2rem;
+      letter-spacing: 0.15em;
+    }
+    
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid rgba(139, 0, 0, 0.2);
+      font-size: 0.9rem;
+    }
+    
+    .stat-label { color: #888; letter-spacing: 0.05em; font-family: 'Noto Sans Gujarati', sans-serif; }
+    .stat-value { color: #fff; font-weight: 600; font-family: 'Noto Sans Gujarati', sans-serif; text-align: right; }
+    
+    .quote-text {
+      font-style: italic;
+      font-size: 1rem;
+      color: #aaa;
+      text-align: center;
+      margin-top: 2rem;
+      font-family: 'Noto Sans Gujarati', sans-serif;
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(15px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.4s ease;
+    }
+    
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    
+    .modal-content {
+      position: relative;
+      max-width: 900px; /* Increased for better reading width */
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #0a0a0a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0;
+      transform: scale(0.95) translateY(20px);
+      transition: transform 0.4s ease;
+      border-radius: 8px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.9);
+    }
+    
+    .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
+    
+    .modal-body { padding: 4rem 3rem; text-align: center; }
+    
+    .modal-title {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      font-family: 'Rasa', serif;
+    }
+    
+    .modal-title.gold { color: var(--royal-gold); text-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+    .modal-title.red { color: var(--blood-red); text-shadow: 0 0 20px rgba(139, 0, 0, 0.2); }
+    
+    .modal-shloka {
+      font-family: 'Rasa', serif;
+      font-size: 1.8rem;
+      color: #fff;
+      margin: 2rem 0;
+      padding: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      font-style: italic;
+      background: rgba(255,255,255,0.02);
+    }
+    
+    .modal-desc {
+      font-size: 1.15rem;
+      line-height: 1.9;
+      color: #e0e0e0;
+      text-align: justify;
+      margin-top: 2rem;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      z-index: 10;
+    }
+    
+    .modal-close:hover { background: #fff; color: #000; }
+
+    .family-tree-container {
+      margin-top: 3rem;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(212, 175, 55, 0.4);
+      border-radius: 8px;
+    }
+    .modal-title.red ~ .family-tree-container {
+       border-color: rgba(139, 0, 0, 0.4);
+    }
+    .tree-title {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: #fff;
+      font-family: 'Rasa', serif;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+    .tree-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      text-align: left;
+    }
+    @media (max-width: 600px) {
+      .tree-grid { grid-template-columns: 1fr; }
+    }
+    .tree-node {
+      background: rgba(0,0,0,0.5);
+      padding: 1rem 1.5rem;
+      border-left: 3px solid var(--royal-gold);
+      border-radius: 4px;
+    }
+    .modal-title.red ~ .family-tree-container .tree-node {
+      border-left-color: var(--blood-red);
+    }
+    .node-label {
+      display: block;
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+    }
+    .node-value {
+      color: #ddd;
+      font-size: 1.1rem;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 4rem 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      margin-top: 4rem;
+      background: #050505;
+    }
+    
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    @media (max-width: 768px) {
+      .portal-container { flex-direction: column; }
+      .portal-side { width: 100%; height: 50%; }
+      .portal-left, .portal-right { border: none; }
+      .portal-left { border-bottom: 2px solid var(--royal-gold); }
+      .portal-right { border-top: 2px solid var(--blood-red); }
+      .portal-left:hover, .portal-right:hover { width: 100%; height: 60%; }
+      
+      .timeline-axis { left: 20px; }
+      .timeline-item { width: 85%; margin-left: 50px !important; }
+      .timeline-item:nth-child(odd)::after, .timeline-item:nth-child(even)::after { left: -39px; }
+      
+      .nav-bar { padding: 1rem; flex-direction: column; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bgCanvas"></canvas>
+
+  <div class="app-wrapper" id="appWrapper">
+    
+    <section class="portal-container" id="portal">
+      <div class="portal-side portal-left" onclick="enterSection('sanskar')">
+        <svg class="portal-icon" viewBox="0 0 100 100">
+          <ellipse cx="50" cy="75" rx="30" ry="8" fill="#D4AF37" opacity="0.3" />
+          <path d="M30 70 Q35 50 50 50 Q65 50 70 70 L68 75 Q50 72 32 75 Z" fill="#D4AF37" />
+          <ellipse cx="50" cy="70" rx="18" ry="5" fill="#FFD700" />
+          <path d="M50 20 Q55 35 52 45 Q50 50 48 45 Q45 35 50 20" fill="#FF6B00">
+            <animate attributeName="d" dur="1s" repeatCount="indefinite" values="M50 20 Q55 35 52 45 Q50 50 48 45 Q45 35 50 20;M50 18 Q57 33 53 44 Q50 52 47 44 Q43 33 50 18;M50 20 Q55 35 52 45 Q50 50 48 45 Q45 35 50 20" />
+          </path>
+        </svg>
+        <h2 class="portal-title gujarati-text">સંસ્કાર</h2>
+        <p class="portal-subtitle gujarati-text" style="letter-spacing: 0.2em;">પવિત્ર વિધિઓ</p>
+        <span class="enter-hint gujarati-text">◆ પ્રવેશ કરવા માટે ક્લિક કરો ◆</span>
+      </div>
+      <div class="portal-side portal-right" onclick="enterSection('mahabharata')">
+        <svg class="portal-icon" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="35" fill="none" stroke="#8B0000" stroke-width="2.5" />
+          <circle cx="50" cy="50" r="8" fill="#8B0000" />
+          <g stroke="#8B0000" stroke-width="1.5">
+            <line x1="50" y1="15" x2="50" y2="42" />
+            <line x1="50" y1="58" x2="50" y2="85" />
+            <line x1="15" y1="50" x2="42" y2="50" />
+            <line x1="58" y1="50" x2="85" y2="50" />
+          </g>
+        </svg>
+        <h2 class="portal-title gujarati-text">મહાભારત</h2>
+        <p class="portal-subtitle gujarati-text" style="letter-spacing: 0.2em;">મહાકાવ્ય યુદ્ધ</p>
+        <span class="enter-hint gujarati-text">◆ પ્રવેશ કરવા માટે ક્લિક કરો ◆</span>
+      </div>
+    </section>
+
+    <main class="main-content" id="mainContent">
+      
+      <nav class="nav-bar">
+        <span class="nav-brand gujarati-text" onclick="backToPortal()">ધરોહર</span>
+        <div class="nav-links">
+          <a href="#sanskar-section" class="nav-link gold gujarati-text">સંસ્કાર</a>
+          <a href="#mahabharata-section" class="nav-link red gujarati-text">મહાભારત</a>
+        </div>
+      </nav>
+
+      <section id="sanskar-section">
+        <div class="section-header">
+          <h2 class="section-title gold gujarati-text">સોળ સંસ્કાર</h2>
+          <div class="section-line"></div>
+          <p class="gujarati-text" style="color: #888;">હિન્દુ ધર્મના પવિત્ર સોળ સંસ્કારો</p>
+        </div>
+        
+        <div class="timeline-container">
+          <div class="timeline-axis"></div>
+          <div id="sanskar-list"></div>
+        </div>
+      </section>
+
+      <section id="mahabharata-section">
+        <div class="section-header">
+          <h2 class="section-title red gujarati-text">મહાભારતના નાયકો</h2>
+          <div class="section-line red"></div>
+          <p class="gujarati-text" style="color: #888;">ધર્મ અને કર્મનું મહાકાવ્ય</p>
+        </div>
+        
+        <div class="section-header" style="padding-top: 0; padding-bottom: 2rem;">
+            <p class="gujarati-text" style="font-size: 1.5rem; color: #fff;">પાંડવો</p>
+        </div>
+        <div class="character-grid" id="pandava-list"></div>
+
+        <div class="section-header" style="padding-top: 4rem; padding-bottom: 2rem;">
+            <p class="gujarati-text" style="font-size: 1.5rem; color: #fff;">કૌરવો અને અન્ય</p>
+        </div>
+        <div class="character-grid" id="kaurava-list"></div>
+      </section>
+
+      <footer class="footer">
+        <h3 class="section-title gujarati-text" style="font-size: 2rem; background: linear-gradient(90deg, #D4AF37, #8B0000); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ધરોહર</h3>
+        <p class="gujarati-text" style="color: #666; font-size: 0.9rem; letter-spacing: 0.2em; margin-top: 1rem;">ભારતીય વારસાની ઉજવણી</p>
+      </footer>
+    </main>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+      <div class="modal-content" id="modalContent">
+        <button class="modal-close" onclick="closeModal()">×</button>
+        <div id="modalBody" class="modal-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* --- DATA SOURCE --- */
+    
+    // સંસ્કારોની વિસ્તૃત માહિતી (20+ lines rendering)
+    const sanskars = [
+      { id: 'garbhadhan', title: '૧. ગર્ભાધાન', eng: 'ગર્ભાધાન (Conception)', 
+        desc: 'ગર્ભાધાન એ હિન્દુ ધર્મના સોળ સંસ્કારોમાં સૌથી પહેલો અને અત્યંત પાયાનો સંસ્કાર છે. હિન્દુ શાસ્ત્રો અને વૈદિક પરંપરા અનુસાર, બાળકના આગમનની શરૂઆત માત્ર એક શારીરિક પ્રક્રિયા નથી, પરંતુ તે એક પવિત્ર આત્માને પૃથ્વી પર બોલાવવાની એક ગહન અને આધ્યાત્મિક વિધિ છે. આ સંસ્કારનો મુખ્ય ઉદ્દેશ્ય માત્ર પ્રજોત્પત્તિ કે વંશવેલો આગળ વધારવાનો નથી, પરંતુ એક શ્રેષ્ઠ, સંસ્કારી, તેજસ્વી અને શારીરિક તેમજ માનસિક રીતે સ્વસ્થ આત્માને આહ્વાન કરવાનો છે.<br><br>ગર્ભાધાન પૂર્વે માતા અને પિતા બંનેએ પોતાના વિચારો, આહાર, વિહાર અને આચરણને અત્યંત શુદ્ધ અને સાત્વિક રાખવા પડે છે. એવું દ્રઢપણે માનવામાં આવે છે કે ગર્ભ ધારણ કરતી વખતે માતા-પિતાની માનસિક અને શારીરિક સ્થિતિ કેવી છે, તેની સીધી અને સચોટ અસર આવનાર બાળકના ચારિત્ર્ય, ભવિષ્ય અને તેના મૂળભૂત સ્વભાવ પર પડે છે. ક્રોધ, લોભ કે મોહની સ્થિતિમાં ગર્ભ ધારણ કરવાનું શાસ્ત્રોમાં વર્જિત માનવામાં આવ્યું છે. આથી જ પવિત્ર મંત્રોચ્ચાર, ઈશ્વરની આરાધના અને હકારાત્મક ઉર્જા સાથે આ સંસ્કાર સંપન્ન કરવામાં આવે છે.<br><br>ઋગ્વેદ અને અથર્વવેદમાં આ સંસ્કાર માટેના અનેક મંત્રો જોવા મળે છે, જે ગર્ભની રક્ષા અને તેની ઉત્તમતા માટે પ્રાર્થના કરે છે. આયુર્વેદિક દ્રષ્ટિએ પણ ગર્ભાધાન પહેલાં શરીર શુદ્ધિ (પંચકર્મ વગેરે) નું અનેરું મહત્વ દર્શાવવામાં આવ્યું છે. આ સંસ્કાર થકી પિતૃઋણમાંથી મુક્તિ મેળવવાનો માર્ગ ખુલે છે. જે દંપતી ધર્મ અને સંસ્કારને ધ્યાનમાં રાખીને પૂરા આયોજનબદ્ધ રીતે સંતાનને જન્મ આપે છે, તેમનું સંતાન સમાજ માટે આશીર્વાદરૂપ બને છે. આજની આધુનિક પેઢી માટે પણ આ સંસ્કારનું મનોવૈજ્ઞાનિક મહત્વ સમજવું અત્યંત જરૂરી છે, કારણ કે સ્વસ્થ સમાજની રચનાનો પાયો આ પ્રથમ સંસ્કારમાં જ રહેલો છે.', 
+        shloka: 'ॐ गर्भाधानं प्रकृर्वित...' },
+        
+      { id: 'pumsavana', title: '૨. પુંસવન', eng: 'પુંસવન (Fetus Protection)', 
+        desc: 'પુંસવન સંસ્કાર સામાન્ય રીતે ગર્ભાવસ્થાના ત્રીજા અથવા ચોથા મહિનામાં કરવામાં આવે છે. આ તે સમય છે જ્યારે ગર્ભસ્થ શિશુના અંગોનો વિકાસ થવાની અને મગજની રચના થવાની શરૂઆત થાય છે. આ સંસ્કારનો મુખ્ય હેતુ ગર્ભસ્થ શિશુના શારીરિક અને માનસિક સ્વાસ્થ્યનું સંપૂર્ણ રક્ષણ કરવાનો તથા તેને ભવિષ્ય માટે અત્યંત મજબૂત બનાવવાનો છે. ગર્ભપાત ન થાય અને બાળક સ્વસ્થ રહે તે માટે ઈશ્વરને વિશેષ પ્રાર્થના કરવામાં આવે છે.<br><br>આ સમયગાળામાં માતાએ પોતાના આહાર અને દિનચર્યા પર વિશેષ ધ્યાન આપવાનું હોય છે. ગર્ભના યોગ્ય વિકાસ માટે માતાને સાત્વિક અને પૌષ્ટિક આહાર લેવાનો આગ્રહ કરવામાં આવે છે. આ ઉપરાંત, માતા સદ્વિચારો કરે, મહાન પુરુષોના ચરિત્રોનું વાંચન કરે અને ધાર્મિક ગ્રંથોનું પઠન કરે તેવો આગ્રહ રાખવામાં આવે છે, કારણ કે બાળકના મગજનો વિકાસ આ તબક્કે અત્યંત ઝડપી હોય છે અને માતાના વિચારો બાળકના મગજ પર સીધી છાપ છોડે છે.<br><br>વૈદિક કાળમાં આ સંસ્કાર વખતે ઔષધિઓનો રસ (જેમ કે વડવાઈનો રસ) કાઢીને સગર્ભા માતાના જમણા નાકમાં નાખવામાં આવતો હતો. આયુર્વેદિક દ્રષ્ટિકોણથી આ પ્રક્રિયા ગર્ભના રક્ષણ, તેના શારીરિક વિકાસ અને ખાસ કરીને મગજના જ્ઞાનતંતુઓને મજબૂત કરવા માટે અત્યંત ફાયદાકારક માનવામાં આવે છે. આ સંસ્કાર માતાને પોતાની દિનચર્યા પ્રત્યે વિશેષ સભાન કરે છે અને બાળકને ગર્ભમાં જ ઉત્તમ સંસ્કારો (જેમ કે અભિમન્યુને મળ્યા હતા) આપવાની ઔપચારિક શરૂઆત કરે છે. તે દર્શાવે છે કે માતૃત્વ એ એક તપસ્યા છે.', 
+        shloka: 'पुमानाग्निः पुमानिन्द्रः...' },
+        
+      { id: 'simantonnayana', title: '૩. સીમંતોન્નયન', eng: 'સીમંતોન્નયન (Baby Shower)', 
+        desc: 'સીમંતોન્નયન સંસ્કારને આપણે સામાન્ય ગુજરાતી ભાષામાં "ખોળો ભરવો", "સીમંત" અથવા "રખડી બાંધવી" કહીએ છીએ. આ અત્યંત ખુશી અને ઉલ્લાસનો સંસ્કાર છે જે સામાન્ય રીતે ગર્ભાવસ્થાના છઠ્ઠા થી આઠમા મહિનાની વચ્ચે કરવામાં આવે છે. આ સંસ્કારનો સૌથી કેન્દ્રીય અને મહત્વનો ઉદ્દેશ્ય સગર્ભા સ્ત્રીને માનસિક રીતે પ્રસન્ન, સંતુષ્ટ અને તણાવમુક્ત રાખવાનો છે.<br><br>ગર્ભાવસ્થાના આ અંતિમ ચરણમાં માતા શારીરિક અને માનસિક રીતે ખૂબ જ થાક અને બેચેની અનુભવે છે. હોર્મોનલ ફેરફારોને કારણે તેના મનમાં અનેક શંકાઓ અને ભય ઉભા થઈ શકે છે. આ સમયે પરિવારના સભ્યો, સગા-સંબંધીઓ અને સ્નેહીઓ ભેગા મળીને ઉત્સવ મનાવે છે. માતાની મનપસંદ વાનગીઓ બનાવીને તેને ખવડાવવામાં આવે છે અને તેને સુંદર ભેટ-સોગાદો અને આશીર્વાદ આપવામાં આવે છે. આ હકારાત્મક વાતાવરણ અને માતાની પ્રસન્નતાની સીધી સકારાત્મક અસર ગર્ભસ્થ શિશુના હૃદય અને મગજ પર પડે છે.<br><br>સીમંત એટલે સેંથો અને ઉન્નયન એટલે ઉપર તરફ લઈ જવું. આ વિધિમાં પતિ પોતાની પત્નીના વાળ ઓળાવે છે અને તેનો સેંથો પૂરે છે. આ ક્રિયા બંને વચ્ચેના અતૂટ પ્રેમ, કાળજી અને સહકારનું સુંદર પ્રતીક છે. તે પત્નીને વિશ્વાસ અપાવે છે કે આ કપરા સમયમાં તેનો પતિ અને આખો પરિવાર તેની સાથે મક્કમતાથી ઊભો છે. આ સંસ્કાર ગર્ભવતી સ્ત્રીને સામાજિક સુરક્ષા અને કૌટુંબિક હુંફ પૂરી પાડે છે, જેથી આવનારું બાળક એક પ્રેમાળ અને સુરક્ષિત વાતાવરણમાં જન્મ લે.', 
+        shloka: 'येनादितेः सीमानं...' },
+        
+      { id: 'jatakarma', title: '૪. જાતકર્મ', eng: 'જાતકર્મ (Birth Ceremony)', 
+        desc: 'બાળકના પૃથ્વી પર જન્મ લેતા જ તરત જ જે પ્રથમ સંસ્કાર કરવામાં આવે છે, તેને જાતકર્મ સંસ્કાર કહેવાય છે. બાળક માતાના ગર્ભમાંથી બહાર આવીને પહેલીવાર જ્યારે સ્વતંત્ર શ્વાસ લે છે, ત્યારે નાળ (Umbilical cord) કાપતા પહેલા જ આ પવિત્ર સંસ્કાર કરવાની વિધિ આપણા શાસ્ત્રોમાં વિસ્તારથી વર્ણવેલી છે. આ સમયે પિતા બાળકને સોનાની સળી અથવા અનામિકા (Ring Finger) વડે મધ અને ઘીનું મિશ્રણ ચટાડે છે.<br><br>મધ અને ઘીનું મિશ્રણ આયુર્વેદિક દ્રષ્ટિએ અત્યંત ગુણકારી માનવામાં આવે છે. તે શિશુની રોગપ્રતિકારક શક્તિ (Immunity) વધારે છે, તેના પાચનતંત્રને સાફ કરે છે અને તેની બુદ્ધિનો વિકાસ કરવા માટે સુવર્ણપ્રાશન સમાન કાર્ય કરે છે. ત્યારબાદ પિતા બાળકના જમણા કાનમાં ધીમેથી "ૐ" અથવા ઈશ્વરનું કોઈ પવિત્ર નામ ઉચ્ચારે છે. આ મંત્રોચ્ચાર એ બાળકના કાન પર પડતો દુનિયાનો સૌપ્રથમ અવાજ હોય છે, જે તેના આત્માને પવિત્ર કરે છે.<br><br>આ સંસ્કાર બાળકને આ નવા અને અજાણ્યા જગતમાં પ્રેમ અને દિવ્યતા સાથે આવકારવા માટે કરવામાં આવે છે. આ વિધિ દરમિયાન પિતા ઈશ્વર પાસે પ્રાર્થના કરે છે કે મારા આ સંતાનનું આયુષ્ય લાંબુ થાય, તેનું સ્વાસ્થ્ય નિરોગી રહે અને તેની મેધા (બુદ્ધિ) અત્યંત તેજસ્વી બને. જાતકર્મ એ પિતા અને સંતાન વચ્ચેનો પ્રથમ આધ્યાત્મિક અને શારીરિક સંપર્ક છે, જે એક અતૂટ બંધન બાંધે છે.', 
+        shloka: 'अंगादंगात् सम्भवसि...' },
+        
+      { id: 'namakaran', title: '૫. નામકરણ', eng: 'નામકરણ (Naming Ceremony)', 
+        desc: 'બાળકના જન્મના ૧૧મા, ૧૨મા કે તેના પછીના કોઈ શુભ દિવસે, જ્યારે માતા અને બાળક શારીરિક રીતે સ્વસ્થ થાય છે, ત્યારે નામકરણ સંસ્કાર ભારે હર્ષોલ્લાસ સાથે યોજવામાં આવે છે. હિન્દુ ધર્મ અને ભારતીય સંસ્કૃતિમાં નામ એ માત્ર કોઈ વ્યક્તિને બોલાવવા પૂરતી એક ઓળખ નથી, પરંતુ તે બાળકના સંપૂર્ણ વ્યક્તિત્વ, તેના આંતરિક ગુણો, ભાગ્ય અને સમગ્ર જીવન પર ખૂબ જ ઊંડો પ્રભાવ પાડે છે.<br><br>આ સંસ્કારમાં વિદ્વાન બ્રાહ્મણ અથવા જ્યોતિષી દ્વારા બાળકના જન્મનો સમય, તારીખ, સ્થળ અને ગ્રહો-નક્ષત્રોની ચોક્કસ સ્થિતિના આધારે તેની જન્મરાશિ નક્કી કરવામાં આવે છે. તે રાશિના અક્ષર પરથી બાળકનું અર્થપૂર્ણ, સંસ્કારી અને પ્રેરણાદાયક નામ પાડવામાં આવે છે. આપણા ઋષિમુનિઓ માનતા હતા કે નામમાં એક પ્રકારની ધ્વનિ ઉર્જા (Sound Energy) રહેલી છે. જ્યારે પણ બાળકને તે નામથી બોલાવવામાં આવે છે, ત્યારે તે વિશિષ્ટ ધ્વનિ કંપનો તેના મગજ પર સકારાત્મક અસર કરે છે.<br><br>સારું અને દેવતાઓ કે મહાપુરુષો સાથે જોડાયેલું નામ બાળકને જીવનભર એક હકારાત્મક ઉર્જા આપે છે અને તેને મહાન બનવાની પ્રેરણા પૂરી પાડે છે. આ પવિત્ર પ્રસંગે પરિવારના સભ્યો, મિત્રો અને સગા-સંબંધીઓ ભેગા થાય છે, બાળકને આશીર્વાદ આપે છે અને પહેલીવાર સમાજ સમક્ષ તેને તેના નવા નામથી ઔપચારિક રીતે ઓળખવામાં આવે છે. આ સંસ્કાર બાળકના સામાજિક અસ્તિત્વની પ્રથમ સ્વીકૃતિ છે.', 
+        shloka: 'नाम अखिलस्य व्यवहारहेतुः...' },
+        
+      { id: 'nishkramana', title: '૬. નિષ્ક્રમણ', eng: 'નિષ્ક્રમણ (First Outing)', 
+        desc: 'નિષ્ક્રમણનો શાબ્દિક અર્થ થાય છે "બહાર કાઢવું" અથવા "બહાર જવું". બાળકના જન્મના આશરે ચોથા મહિને તેને પહેલીવાર ઘરની ચાર દીવાલોની સુરક્ષામાંથી બહાર ખુલ્લા વાતાવરણમાં અને વિશાળ જગતમાં લાવવામાં આવે છે. અત્યાર સુધી બાળક ઘરમાં જ અત્યંત સુરક્ષિત અને નિયંત્રિત વાતાવરણમાં ઉછરતું હતું, હવે તેને ધીમે ધીમે બાહ્ય પ્રકૃતિ અને સમાજ સાથે પરિચય કરાવવાનો આ યોગ્ય સમય છે.<br><br>આ સંસ્કાર દરમિયાન પવિત્ર મંત્રોચ્ચાર સાથે બાળકને ઘરની બહાર લાવવામાં આવે છે અને તેને સૂર્યના તેજસ્વી પ્રકાશ અને ચંદ્રના શીતળ કિરણોના દર્શન કરાવવામાં આવે છે. પિતા અને પરિવારના સભ્યો સૂર્યદેવ પાસે બાળકના તેજ, શૌર્ય, આરોગ્ય અને લાંબા આયુષ્ય માટે પ્રાર્થના કરે છે, જ્યારે રાત્રિના સમયે ચંદ્રદેવ પાસે બાળકના મનની શાંતિ, શીતળતા અને સ્થિરતાની માંગણી કરવામાં આવે છે.<br><br>આ સંસ્કાર પાછળ ખૂબ મોટું વૈજ્ઞાનિક કારણ પણ છુપાયેલું છે. સવારનો કુમળો તડકો બાળકના શરીરમાં વિટામિન ડી (Vitamin D) ઉત્પન્ન કરવામાં મદદ કરે છે, જે હાડકાંના વિકાસ માટે જરૂરી છે. ઘરની બહાર કાઢવાથી બાળક બાહ્ય વાતાવરણ, હવા અને બેક્ટેરિયા સામે પોતાની કુદરતી રોગપ્રતિકારક શક્તિ (Immunity) કેળવવામાં સક્ષમ બને છે. પંચમહાભૂતો (પૃથ્વી, જળ, તેજ, વાયુ, આકાશ) સાથે બાળકનો આ પહેલો સીધો અને આધ્યાત્મિક સંપર્ક હોય છે.', 
+        shloka: 'सूर्यः सोमो...' },
+        
+      { id: 'annaprashana', title: '૭. અન્નપ્રાશન', eng: 'અન્નપ્રાશન (First Solid Food)', 
+        desc: 'જ્યારે બાળક છ મહિનાનું થાય છે, ત્યારે તેના દાંત ફૂટવાની શરૂઆત થાય છે અને તેના પાચનતંત્રમાં અન્ન પચાવવાની ક્ષમતા ધીમે ધીમે વિકસિત થવા લાગે છે. માત્ર માતાનું દૂધ હવે તેના વધતા શારીરિક વિકાસ માટે પૂરતું નથી હોતું. આ સમયે અન્નપ્રાશન સંસ્કાર કરવામાં આવે છે, જેમાં બાળકને પોતાના જીવનમાં પહેલીવાર માતાના દૂધ સિવાયનું ઘન અન્ન (Solid Food) ઔપચારિક રીતે ખવડાવવામાં આવે છે.<br><br>સામાન્ય રીતે આ સંસ્કારમાં દેવી-દેવતાઓને ભોગ ધરાવ્યા પછી, ચાંદીના વાસણમાં પવિત્ર રીતે બનાવેલી ગળી ખીર અથવા ગાયના ઘી સાથે મસળેલો ભાત બાળકને પ્રેમથી ચટાડવામાં આવે છે. ચાંદીના વાસણનો ઉપયોગ કરવાની પાછળ આયુર્વેદિક અને વૈજ્ઞાનિક કારણ છે; ચાંદી પ્રકૃતિમાં શીતળ છે અને તે એન્ટીબેક્ટેરિયલ ગુણો ધરાવે છે, જે બાળકના કોમળ સ્વાસ્થ્ય માટે ઉત્તમ છે.<br><br>ઉપનિષદોમાં અન્નને બ્રહ્મ સ્વરૂપ માનવામાં આવ્યું છે ("અન્નમ્ બ્રહ્મેતિ વ્યજાનાત્"). આપણી સંસ્કૃતિમાં કહેવત છે કે "જેવું ખાઈએ અન્ન, તેવું બને મન". તેથી આ સંસ્કાર દ્વારા ઈશ્વરને વિશેષ પ્રાર્થના કરવામાં આવે છે કે બાળક ભવિષ્યમાં જે પણ અન્ન ગ્રહણ કરે તે સાત્વિક હોય, તે તેના શારીરિક બળ, માનસિક વિકાસ અને બુદ્ધિ નિર્માણમાં શ્રેષ્ઠ ફાળો આપે. આ સંસ્કાર શારીરિક પોષણ અને સાત્વિક આહાર જીવનની શુભ અને ધાર્મિક શરૂઆત છે.', 
+        shloka: 'अन्नपते अन्नस्य नो...' },
+        
+      { id: 'chudakarana', title: '૮. ચુડાકર્મ', eng: 'ચુડાકર્મ (Head Shaving / Mundan)', 
+        desc: 'ચુડાકર્મ સંસ્કાર, જેને આપણે સામાન્ય ભાષામાં "બાબરી ઉતારવી", "મુંડન" અથવા "ચૌલકર્મ" કહીએ છીએ, તે બાળકના પ્રથમ, ત્રીજા અથવા પાંચમા વર્ષે શુભ મુહૂર્ત જોઈને કરવામાં આવે છે. આ સંસ્કાર અંતર્ગત બાળકના માથાના તે તમામ વાળ અસ્ત્રા વડે કાપી નાખવામાં આવે છે જે તે માતાના ગર્ભમાંથી પોતાની સાથે લઈને જન્મ્યો હોય છે.<br><br>ધાર્મિક અને આધ્યાત્મિક માન્યતા મુજબ, ગર્ભના જૂના વાળ સાથે વ્યક્તિના પૂર્વ જન્મના અશુભ સંસ્કારો અને પાપો જોડાયેલા હોય છે. આ વાળનું મુંડન કરીને બાળકના તે જૂના સંસ્કારોને દૂર કરવામાં આવે છે અને તેને નવા જીવનમાં સંપૂર્ણ પવિત્રતા અર્પણ કરવામાં આવે છે. મુંડન કર્યા પછી માથાના મધ્ય ભાગમાં શિખા (ચોટલી) રાખવામાં આવે છે જે હિન્દુ ધર્મમાં જ્ઞાન, ચેતના અને બ્રહ્મરંધ્ર (Crown Chakra) નું કેન્દ્ર મનાય છે.<br><br>આ સંસ્કારનું વૈજ્ઞાનિક અને આયુર્વેદિક દ્રષ્ટિએ પણ ઘણું મોટું મહત્વ છે. જન્મ સમયના વાળ કાઢવાથી માથાની ત્વચા (Scalp) પર જામેલા બેક્ટેરિયા કે મેલ કાયમ માટે દૂર થાય છે. મુંડન કરવાથી માથામાં લોહીનું પરિભ્રમણ (Blood Circulation) વધે છે, જેનાથી ભવિષ્યમાં વાળ વધુ મજબૂત, સ્વસ્થ અને ગાઢ આવે છે. આ સંસ્કાર બાળકના મગજને શીતળતા પ્રદાન કરે છે અને તેની બુદ્ધિ તથા યાદશક્તિને તેજસ્વી બનાવવામાં અગત્યનો ભાગ ભજવે છે.', 
+        shloka: 'येना पूषा...' },
+        
+      { id: 'karnavedha', title: '૯. કર્ણવેધ', eng: 'કર્ણવેધ (Ear Piercing)', 
+        desc: 'કર્ણવેધનો શાબ્દિક અર્થ થાય છે કાન વીંધવાની પ્રક્રિયા. પ્રાચીન હિન્દુ પરંપરામાં માત્ર સ્ત્રીઓ જ નહિ, પરંતુ બાળક-બાળકી બંને માટે આ સંસ્કાર અત્યંત મહત્વનો ગણાય છે. આ સંસ્કાર સામાન્ય રીતે ૬ મહિનાથી ૫ વર્ષની ઉંમર વચ્ચે કોઈ શુભ તિથિએ કરવામાં આવે છે. સોનાના તાર અથવા ચાંદીની સોય વડે એકદમ કાળજીપૂર્વક કાનની બૂટ (Earlobe) વીંધવામાં આવે છે.<br><br>આ દેખીતી રીતે સાધારણ લાગતી પ્રક્રિયાના મૂળમાં ઋષિમુનિઓનું અત્યંત ઊંડું વૈજ્ઞાનિક અને આયુર્વેદિક જ્ઞાન છુપાયેલું છે. કાનના નીચેના ભાગમાં અમુક ખાસ નર્વ એન્ડિંગ્સ (Nerve endings) અને એક્યુપંક્ચર પોઇન્ટ્સ (Acupuncture points) આવેલા હોય છે. આ પોઇન્ટ્સને યોગ્ય ઉંમરે વીંધવાથી મગજની નસો સક્રિય થાય છે, શિશુની બુદ્ધિ અને યાદશક્તિમાં નોંધપાત્ર વધારો થાય છે. આયુર્વેદ અનુસાર કર્ણવેધ કરવાથી હર્નિયા (Hernia) અને લકવા (Paralysis) જેવી ગંભીર બીમારીઓ સામે આજીવન રક્ષણ મળે છે.<br><br>આ ઉપરાંત, કાન વીંધ્યા પછી તેમાં સોનાના આભૂષણો પહેરવાથી શરીરમાં સકારાત્મક ઉર્જા અને ગરમાવાનો સંચાર થાય છે. આભૂષણો વ્યક્તિના શારીરિક સૌંદર્ય અને આકર્ષણમાં પણ વધારો કરે છે. આ સંસ્કાર શારીરિક સ્વાસ્થ્ય સુધારવા, કાનની સાંભળવાની શક્તિને તેજ કરવા અને બાળકોને આંતરિક બીમારીઓથી બચાવવા માટે નિર્ધારિત કરવામાં આવ્યો હતો.', 
+        shloka: 'भद्रं कर्णेभिः...' },
+        
+      { id: 'vidyarambha', title: '૧૦. વિદ્યારંભ', eng: 'વિદ્યારંભ (Beginning of Education)', 
+        desc: 'જ્યારે બાળક પાંચ વર્ષનું થાય, ત્યારે તેના મગજની ગ્રહણશક્તિ અને યાદશક્તિ એટલી વિકસિત થઈ જાય છે કે તે અક્ષર, સંખ્યા અને પાયાનું જ્ઞાન આસાનીથી સમજી શકે છે. આ યોગ્ય સમયે વિદ્યારંભ સંસ્કાર કરવામાં આવે છે, જે બાળકના ઔપચારિક શિક્ષણ, બૌદ્ધિક વિકાસ અને સાક્ષરતાની યાત્રાની આધ્યાત્મિક શરૂઆતનું પવિત્ર પ્રતીક છે.<br><br>આ શુભ દિવસે વિદ્યા અને કળાની દેવી મા સરસ્વતી તથા બુદ્ધિ, જ્ઞાન અને વિઘ્નહર્તા દેવ શ્રી ગણેશજીની વિશેષ પૂજા-અર્ચના કરવામાં આવે છે. ત્યારબાદ માતા-પિતા કે કુટુંબના ગુરુ બાળકનો હાથ પકડીને તેને સ્લેટમાં અથવા ચોખા ભરેલી થાળીમાં ચાંદીની સળી વડે "શ્રી ગણેશાય નમઃ", "ૐ" અથવા પોતાની માતૃભાષાનો પ્રથમ અક્ષર લખાવે છે. આ વિધિ બાળક માટે એક નવો અને રોમાંચક અનુભવ હોય છે.<br><br>આ સંસ્કારનો મુખ્ય હેતુ બાળકના મનમાં વિદ્યા, પુસ્તકો અને જ્ઞાન પ્રત્યે આદર, પ્રેમ અને રુચિ જગાડવાનો છે. અક્ષરજ્ઞાન દ્વારા બાળકના જીવનમાંથી અજ્ઞાનતાનો અંધકાર કાયમ માટે દૂર થાય છે અને જ્ઞાનનો દિવ્ય પ્રકાશ તેના જીવનમાં પ્રવેશે છે. વિદ્યા એ મનુષ્યનું સાચું આભૂષણ છે, અને આ સંસ્કાર બાળકને સાક્ષરતા, જ્ઞાન અને જીવનભર શીખવાના માર્ગ પર આગળ વધવા માટે પ્રેરિત કરે છે.', 
+        shloka: 'सरस्वति नमस्तुभ्यं...' },
+        
+      { id: 'upanayana', title: '૧૧. ઉપનયન', eng: 'ઉપનયન (Sacred Thread Ceremony)', 
+        desc: 'ઉપનયન એટલે "ગુરુ પાસે જ્ઞાન તરફ લઈ જવું". આ હિન્દુ ધર્મના સૌથી મહત્વપૂર્ણ, ગહન અને ક્રાંતિકારી સંસ્કારોમાંનો એક છે. તેને સામાન્ય ભાષામાં જનોઈ, યજ્ઞોપવિત કે મુહૂર્ત પણ કહેવાય છે. આ સંસ્કાર પછી બાળકનો આધ્યાત્મિક અને બૌદ્ધિક જન્મ થાય છે તેવું માનવામાં આવે છે, અને તેથી જ તેને "દ્વિજ" (બીજી વાર જન્મેલો) કહેવામાં આવે છે. આ સંસ્કાર બાળપણાને પાછળ છોડી જવાબદાર જીવનમાં પ્રવેશવાનું પગથિયું છે.<br><br>આ સંસ્કારમાં બાળકને ત્રણ દોરાવાળી પવિત્ર જનોઈ (Sacred Thread) ડાબા ખભાથી જમણી કમર તરફ ધારણ કરાવવામાં આવે છે. આ ત્રણ દોરા બ્રહ્મા, વિષ્ણુ અને મહેશનું પ્રતીક છે, તેમજ દેવઋણ, ઋષિઋણ અને પિતૃઋણ ચૂકવવાની જવાબદારીનું સતત સ્મરણ કરાવે છે. આ પવિત્ર દિવસે બાળકને ગુરુ દ્વારા વેદમંત્ર "ગાયત્રી મંત્ર" ની ખાનગી દીક્ષા આપવામાં આવે છે, જે તેના બુદ્ધિના વિકાસ માટેનું સર્વોચ્ચ સાધન છે.<br><br>આ સંસ્કાર બાળકને કઠોર અનુશાસન, બ્રહ્મચર્ય, સંયમ અને કર્તવ્યપાલનનો પહેલો પાઠ ભણાવે છે. અહીંથી તેની બાળસહજ ચંચળતા અને બેજવાબદારી પર નિયંત્રણ આવે છે અને તે એક જવાબદાર, જિજ્ઞાસુ વિદ્યાર્થી તરીકે પોતાનું જીવન ગુરુકુળના કડક નિયમો સાથે શરૂ કરવા માટે માનસિક રીતે સંપૂર્ણ તૈયાર થાય છે.', 
+        shloka: 'यज्ञोपवीतं परमं पवित्रं...' },
+        
+      { id: 'vedarambha', title: '૧૨. વેદારંભ', eng: 'વેદારંભ (Study of Vedas)', 
+        desc: 'ઉપનયન સંસ્કાર દ્વારા ગુરુકુળમાં પ્રવેશ મેળવ્યા પછી, ગુરુના સાંનિધ્યમાં બેસીને વેદો, શાસ્ત્રો અને ઉપનિષદોનું ગહન જ્ઞાન મેળવવાની વિધિવત શરૂઆતને વેદારંભ સંસ્કાર કહેવાય છે. પ્રાચીન અને વૈદિક કાળમાં વેદજ્ઞાનને સર્વોચ્ચ જ્ઞાન માનવામાં આવતું હતું. વેદો માત્ર પુસ્તકો નથી, પરંતુ તે મનુષ્યને જીવન જીવવાની ઉત્તમ કળા, વિજ્ઞાન, અને બ્રહ્માંડનું પરમ સત્ય સમજાવતા દિવ્ય ગ્રંથો છે.<br><br>આ સંસ્કાર પછી વિદ્યાર્થી (બ્રહ્મચારી) ગુરુના આશ્રમમાં રહીને અત્યંત કઠોર શિસ્તનું પાલન કરે છે. તે વહેલી સવારે ઉઠીને નિયમિત સંધ્યા વંદન અને યજ્ઞ કરે છે, અને ઋગ્વેદ, યજુર્વેદ, સામવેદ તથા અથર્વવેદનો ઊંડો અભ્યાસ કરે છે. આ અભ્યાસ માત્ર ગોખણપટ્ટી કે પુસ્તકિયું જ્ઞાન નહોતું. ગુરુકુળમાં શસ્ત્રવિદ્યા, અર્થશાસ્ત્ર, રાજનીતિ, ખગોળશાસ્ત્ર, ગણિત અને સૌથી વિશેષ નૈતિકતાનું સંપૂર્ણ અને પ્રાયોગિક જ્ઞાન આપવામાં આવતું હતું.<br><br>આ સંસ્કારનો અને ગુરુકુળ શિક્ષણનો મૂળ હેતુ યુવાનને શારીરિક, માનસિક અને આધ્યાત્મિક રીતે એટલો સક્ષમ, નીડર અને બુદ્ધિશાળી બનાવવાનો છે કે તે ભવિષ્યમાં ગમે તેવી મુસીબતોનો સામનો કરી શકે. તે સમાજનું સાચું નેતૃત્વ કરી શકે અને એક જવાબદાર નાગરિક તરીકે પોતાના તમામ કર્તવ્યોને યોગ્ય રીતે નિભાવી શકે.', 
+        shloka: 'वेदमेतं...' },
+        
+      { id: 'keshanta', title: '૧૩. કેશાન્ત', eng: 'કેશાન્ત (First Shaving / Youth)', 
+        desc: 'કેશાન્ત સંસ્કાર એટલે કેશ (વાળ) નો અંત અથવા વિદાય. જ્યારે ગુરુકુળમાં અભ્યાસ કરતો વિદ્યાર્થી આશરે સોળ વર્ષની ઉંમરે પહોંચે છે અને ઔપચારિક રીતે કિશોરાવસ્થામાંથી યુવાનીમાં પ્રવેશે છે, ત્યારે આ મહત્વનો સંસ્કાર કરવામાં આવતો હતો. આ સમયે યુવાનના ચહેરા પર આવેલી પહેલી દાઢી-મૂછના વાળનું વિધિવત મુંડન કરવામાં આવતું હતું.<br><br>આ સંસ્કાર માત્ર વાળ કાપવાની વિધિ નથી, પરંતુ તે એક મનોવૈજ્ઞાનિક રિમાઇન્ડર (યાદગીરી) છે. તે દર્શાવે છે કે યુવાનીના આગમન સાથે શરીરમાં ઘણા બધા શારીરિક અને હોર્મોનલ ફેરફારો થાય છે, અને મનમાં અનેક પ્રકારની વાસનાઓ અને આકર્ષણો જાગૃત થવાની સંભાવના રહે છે. આ ઉંમરે યુવાન રસ્તો ભટકી શકે છે. તેથી આ સમયે સંયમ, એકાગ્રતા અને બ્રહ્મચર્યનું પાલન અત્યંત જરૂરી છે. ચહેરા પરનું મુંડન એ શારીરિક મોહના ત્યાગ અને આંતરિક પવિત્રતાનું પ્રતીક છે.<br><br>આ પવિત્ર પ્રસંગે વિદ્યાર્થી પોતાના ગુરુને આચાર્ય દક્ષિણા રૂપે એક ગાયનું દાન કરતો હોવાથી, આ સંસ્કારને "ગોદાન સંસ્કાર" તરીકે પણ ઓળખવામાં આવે છે. આ સંસ્કાર યુવાનને તેના શરીરમાં થઈ રહેલા પરિવર્તનો પ્રત્યે માનસિક રીતે સભાન કરે છે અને યુવાનીના જોશને યોગ્ય દિશામાં, પોતાના લક્ષ્ય પર કેન્દ્રિત રાખવાની અદભુત પ્રેરણા આપે છે.', 
+        shloka: 'केशान्त...' },
+        
+      { id: 'samavartana', title: '૧૪. સમાવર્તન', eng: 'સમાવર્તન (Graduation)', 
+        desc: 'સમાવર્તનનો શાબ્દિક અર્થ થાય છે "પાછા ફરવું" અથવા "આશ્રમમાંથી વિદાય લેવી". આધુનિક સમયમાં યુનિવર્સિટીઓમાં આપણે જેને દીક્ષાંત સમારોહ (Convocation Ceremony) કહીએ છીએ, તે આપણી ઋષિ પરંપરાનો પ્રાચીન સમાવર્તન સંસ્કાર જ છે. ગુરુકુળમાં ૧૨ થી ૧૪ વર્ષનો કઠોર વિદ્યાભ્યાસ સંપૂર્ણ કર્યા પછી જ્યારે શિષ્ય વિદ્વાન બનીને પોતાના ઘરે પરત ફરે છે, ત્યારે આ ભવ્ય સમારોહ યોજાય છે.<br><br>ગુરુકુળમાંથી વિદાય લેતા પહેલા, વિદ્યાર્થી પોતાના સાદા અને કઠોર બ્રહ્મચારીના વસ્ત્રો (જેવા કે મૃગચર્મ) નો કાયમ માટે ત્યાગ કરે છે અને ગૃહસ્થ જીવનને અનુરૂપ સુંદર વસ્ત્રો, ચંપલ અને આભૂષણો ધારણ કરે છે. આ પ્રસંગે ગુરુ પોતાના શિષ્યને જીવનભર યાદ રાખવા જેવો અમૂલ્ય અંતિમ ઉપદેશ આપે છે, જે તૈત્તિરીય ઉપનિષદમાં ખૂબ સુંદર રીતે વર્ણવેલ છે: "સત્યં વદ, ધર્મં ચર" (હંમેશા સત્ય બોલજે અને આજીવન ધર્મનું આચરણ કરજે).<br><br>ગુરુ શિષ્યને સમાજ પ્રત્યેની તેની ભાવિ જવાબદારીઓ યાદ અપાવે છે. તે શીખવે છે કે "માતૃ દેવો ભવ, પિતૃ દેવો ભવ, આચાર્ય દેવો ભવ, અતિથિ દેવો ભવ" એટલે કે માતા, પિતા, ગુરુ અને અતિથિને ભગવાન સમાન માનીને તેમની સેવા કરજે. આ સંસ્કાર શિષ્યને ગુરુકુળના સુરક્ષિત અને નિયંત્રિત વાતાવરણમાંથી વાસ્તવિક દુનિયાના કપરા સંઘર્ષોનો સામનો કરવા માટે આશીર્વાદ અને જ્ઞાન આપીને વિદાય આપે છે.', 
+        shloka: 'सत्यं वद धर्मं चर...' },
+        
+      { id: 'vivaha', title: '૧૫. વિવાહ', eng: 'વિવાહ (Marriage)', 
+        desc: 'વિવાહ સંસ્કાર એ હિન્દુ ધર્મના સોળ સંસ્કારોમાં સૌથી મહત્વનો, જવાબદારીપૂર્વકનો અને ઉત્સવરૂપ સંસ્કાર ગણાય છે. ગુરુકુળમાં વિદ્યાર્થી જીવન (બ્રહ્મચર્યાશ્રમ) પૂર્ણ કર્યા પછી, સમાવર્તન સંસ્કાર બાદ યુવાન ઔપચારિક રીતે ગૃહસ્થાશ્રમમાં પ્રવેશ કરે છે. હિન્દુ ધર્મ અને ભારતીય સંસ્કૃતિમાં વિવાહ એ માત્ર બે વ્યક્તિઓ વચ્ચેનો કોઈ કાનૂની કરાર (Contract) કે શારીરિક ભોગવિલાસનું સાધન નથી, પરંતુ તે બે આત્માઓ, બે પરિવારો અને બે વિચારધારાઓનું અત્યંત પવિત્ર અને જન્મોજન્મનું અતૂટ બંધન છે.<br><br>વિવાહ મંડપમાં પવિત્ર અગ્નિની સાક્ષીમાં અને મંત્રોચ્ચાર વચ્ચે, વર અને કન્યા એકબીજાના હાથ પકડીને અગ્નિની પ્રદક્ષિણા (સાત ફેરા અથવા સપ્તપદી) ફરે છે. આ સાત ફેરા દરમિયાન તેઓ જીવનના દરેક સુખ-દુઃખમાં, સ્વાસ્થ્ય અને બીમારીમાં એકબીજાનો સાથ નિભાવવાના સાત કઠોર વચનો આપે છે. આ સંસ્કાર દ્વારા બંને પતિ-પત્ની અર્ધાંગિની બનીને ધર્મ, અર્થ, કામ અને મોક્ષની પ્રાપ્તિ માટે એકસાથે પોતાની નવી જીવનયાત્રા શરૂ કરે છે.<br><br>આપણા શાસ્ત્રોમાં ગૃહસ્થાશ્રમને મનુષ્ય જીવનના ચારેય આશ્રમોનો મુખ્ય આધારસ્તંભ માનવામાં આવે છે. કારણ કે એક યોગ્ય ગૃહસ્થ દ્વારા જ સમાજનું નિર્માણ થાય છે, પિતૃઋણ ચૂકવવા માટે સંતાન પ્રાપ્તિ થાય છે, અને બાકીના અન્ય આશ્રમો (બ્રહ્મચર્ય, વાનપ્રસ્થ અને સન્યાસ) ને આર્થિક સહાય અને ભોજનનો આશ્રય મળે છે. વિવાહ એ વ્યક્તિને સ્વાર્થમાંથી બહાર કાઢીને સામાજિક જવાબદારી અને નિસ્વાર્થ પ્રેમનું પાલન કરતા શીખવતું ઉત્તમ ઉદાહરણ છે.', 
+        shloka: 'धर्मेच अर्थेच कामेच...' },
+        
+      { id: 'antyeshti', title: '૧૬. અન્ત્યેષ્ટિ', eng: 'અન્ત્યેષ્ટિ (Last Rites)', 
+        desc: 'અન્ત્યેષ્ટિ એટલે અંતિમ ઈચ્છા અથવા માનવ જીવનમાં કરવામાં આવતો અંતિમ અને આખરી યજ્ઞ. મનુષ્યના જન્મથી એટલે કે ગર્ભાધાનથી શરૂ થયેલી સોળ સંસ્કારોની આ લાંબી યાત્રા આ અંતિમ સંસ્કાર સાથે આ પૃથ્વી પર સત્તાવાર રીતે પૂર્ણ થાય છે. મનુષ્યના મૃત્યુ પછી તેના નશ્વર અને નિર્જીવ શરીરને અગ્નિદાહ આપીને પંચમહાભૂતો (પૃથ્વી, જળ, અગ્નિ, વાયુ, આકાશ) માં સન્માનપૂર્વક વિલીન કરવામાં આવે છે, જ્યાંથી આ શરીરનું નિર્માણ થયું હતું.<br><br>વેદાંત અને હિન્દુ દર્શન મુજબ, મનુષ્યનો આત્મા અજર અને અમર છે; શસ્ત્રો તેને છેદી શકતા નથી અને અગ્નિ તેને બાળી શકતી નથી, માત્ર શરીર જ સમય આવ્યે નષ્ટ થાય છે. અગ્નિદાહ આપતી વખતે પવિત્ર મંત્રોચ્ચાર દ્વારા આત્માની સદગતિ, શાંતિ અને પરમાત્મામાં લીન થવા માટે ઈશ્વરને કરુણ પ્રાર્થના કરવામાં આવે છે. સામાન્ય રીતે મૃતકના પુત્ર કે કોઈ નજીકના સગા દ્વારા જ ચિતાને મુખાગ્નિ આપવામાં આવે છે, જે સંસારની મોહ-માયામાંથી આત્માને સંપૂર્ણપણે મુક્ત કરવાની એક ધાર્મિક પ્રક્રિયા છે.<br><br>અગ્નિદાહ પછી અસ્થિ સંચય, કપાલક્રિયા અને પવિત્ર નદીઓમાં અસ્થિ વિસર્જન દ્વારા શરીરના છેલ્લા અંશને પણ પ્રકૃતિમાં પાછું ભેળવી દેવામાં આવે છે. આ અંતિમ સંસ્કાર સમાજ અને જીવિત લોકો માટે એક બહુ મોટો બોધપાઠ છે. તે આપણને એ પરમ સત્યની યાદ અપાવે છે કે આ આખો સંસાર ક્ષણભંગુર છે, ગમે તેટલી સંપત્તિ કે સત્તા હોય પણ અંતે રાખ જ થવાનું છે, અને માત્ર વ્યક્તિના જીવનભર કરેલા સત્કર્મો અને તેનો સ્વભાવ જ તેના ગયા પછી પાછળ યાદ રહે છે.', 
+        shloka: 'वायुरनिलममृतम...' }
+    ];
+
+    // પાંડવોની વિસ્તૃત માહિતી (20+ lines rendering)
+    const pandavas = [
+      { id: 'yudhishthira', name: 'યુધિષ્ઠિર', role: 'ધર્મરાજ', backTitle: 'જ્યેષ્ઠ પાંડવ', stat1: 'ધર્મ અને સત્ય', stat2: 'ભાલો (Spear)', quote: 'ધર્મો રક્ષતિ રક્ષિતઃ', 
+        desc: 'પાંડવોમાં સૌથી મોટા ભાઈ યુધિષ્ઠિર ધર્મ, નીતિ અને સત્યના સાક્ષાત્ અવતાર ગણાય છે. તેમનો જન્મ કુંતીને ઋષિ દુર્વાસા દ્વારા મળેલા મંત્રથી યમરાજ (ધર્મરાજ) ના આહ્વાન દ્વારા થયો હતો. તેઓ તેમના આજીવન કઠોર સત્યપાલન, અદભુત ન્યાયપ્રિયતા, ક્ષમાભાવ અને ગમે તેવી મુશ્કેલ પરિસ્થિતિમાં ધીરજ ન ગુમાવવા માટે સમગ્ર આર્યવર્તમાં વિખ્યાત હતા. તેમણે પોતાના અંગત સ્વાર્થ કે ભયંકર મુસીબતોમાં પણ ક્યારેય અસત્ય કે છળકપટનો આશરો લીધો ન હતો.<br><br>તેમનું જીવન અનેક કસોટીઓથી ભરેલું હતું. પોતાના મામા શકુનિ અને દુર્યોધનના કપટથી રમાયેલી જુગારની રમતમાં તેઓ પોતાનું સર્વસ્વ—રાજપાટ, ભાઈઓ અને પત્ની દ્રૌપદીને—હારી ગયા હતા. છતાં, તેમને મળેલા વનવાસના ૧૨ વર્ષ અને અજ્ઞાતવાસનું ૧ વર્ષ તેમણે કોઈપણ પ્રકારનો અધર્મ કર્યા વિના, શાંતિ અને ધૈર્યથી પસાર કર્યા હતા. કુરુક્ષેત્રના ભીષણ યુદ્ધમાં તેઓ પાંડવ સેનાના મુખ્ય નૈતિક અને આધ્યાત્મિક આધાર હતા. એવું કહેવાય છે કે તેમનો રથ સત્યના પ્રભાવને કારણે હંમેશા જમીનથી ચાર આંગળ અધ્ધર ચાલતો હતો.<br><br>તેમની નિષ્ઠા અને ચારિત્ર્ય એટલા અડગ હતા કે મહાભારતના અંતકાળે જ્યારે બધા પાંડવો અને દ્રૌપદી હિમાલયમાં સ્વર્ગારોહણની યાત્રામાં એક પછી એક ઢળી પડ્યા, ત્યારે માત્ર યુધિષ્ઠિર જ એકમાત્ર એવા યોદ્ધા હતા જે પોતાના સદેહે (જીવતા) સ્વર્ગના દ્વાર સુધી પહોંચી શક્યા હતા. અને ત્યાં પણ તેમણે પોતાની સાથે આવેલા એક કૂતરા (જે સ્વયં ધર્મરાજ હતા) નો સાથ છોડવાનો ઇનકાર કર્યો હતો. તેમના ધર્મરાજના બિરુદે તેમને મહાભારતના સૌથી આદરણીય અને આદર્શ પાત્ર બનાવ્યા છે.', 
+        shloka: 'धर्मो रक्षति रक्षितः', 
+        family: { parents: 'પાંડુ રાજા અને કુંતી (યમરાજના મંત્રથી)', spouse: 'દ્રૌપદી, દેવિકા', siblings: 'ભીમ, અર્જુન, નકુલ, સહદેવ, કર્ણ', children: 'પ્રતિવિંધ્ય, યૌધેય' } },
+      
+      { id: 'bhima', name: 'ભીમ', role: 'મહાબલી', backTitle: 'મહાબલી યોદ્ધા', stat1: 'બળ અને આક્રોશ', stat2: 'ગદા (Mace)', quote: 'હું વાયુપુત્ર ભીમ છું!', 
+        desc: 'પાંડવોમાં બીજા ભાઈ ભીમસેન વાયુદેવના વરદાન અને કૃપાથી જન્મ્યા હતા. તેમનામાં દસ હજાર હાથીઓ જેટલું અસીમ શારીરિક બળ હતું અને તેઓ સમગ્ર વિશ્વના ગદા યુદ્ધના અજોડ અને અજેય મહારથી હતા. ભીમનો મૂળ સ્વભાવ અત્યંત ક્રોધી, આક્રમક અને જલ્દી ઉશ્કેરાઈ જાય તેવો હતો, પરંતુ તેઓ અંતરથી પોતાના ભાઈઓ, માતા કુંતી અને પત્ની દ્રૌપદી માટે અત્યંત પ્રેમાળ, લાગણીશીલ અને તેમના કવચ સમાન રક્ષક હતા.<br><br>બાળપણથી જ દુર્યોધન અને કૌરવો ભીમના આ શારીરિક બળથી ડરતા હતા અને ઈર્ષ્યા કરતા હતા. દુર્યોધને બાળપણમાં જ ભીમને ઝેર આપીને ગંગા નદીમાં ડુબાડી મારવાનો કાવતરું ઘડ્યું હતું, પરંતુ નાગલોકમાં જઈને ભીમને અમૃત પીવા મળ્યું અને તેઓ વધુ બળવાન બન્યા. દ્રૌપદીના ચીરહરણ વખતે ભીમે ભરી સભામાં કઠોર પ્રતિજ્ઞા લીધી હતી કે તે ગદાથી દુર્યોધનની સાથળ તોડી નાખશે અને દુશાસનની છાતી ચીરીને તેનું લોહી પીશે. આ ભયંકર પ્રતિજ્ઞા તેમણે કુરુક્ષેત્રના યુદ્ધમાં ૧૦૦ માંથી ૯૯ કૌરવોનો વધ કરીને પૂરી કરી હતી.<br><br>ભીમ સમગ્ર મહાભારત કાળના એકમાત્ર એવા યોદ્ધા હતા જે શારીરિક દ્વંદ્વ યુદ્ધમાં ક્યારેય કોઈનાથી હારતા ન હતા. બકાસુર, જરાસંધ, હિડિમ્બ અને કીચક જેવા મહાબળવાન અને ક્રૂર અસુરોનો વધ ભીમે પોતાના એકલા હાથે જ કર્યો હતો. તેઓ માત્ર એક ખતરનાક યોદ્ધા જ નહિ, પરંતુ ઉત્તમ રસોઈયા પણ હતા, અને અજ્ઞાતવાસ દરમિયાન વિરાટ રાજાના રસોડામાં તેમણે "વલ્લભ" નામથી રસોઈયા તરીકે સેવા આપી હતી.', 
+        shloka: 'वृकोदरः', 
+        family: { parents: 'પાંડુ રાજા અને કુંતી (વાયુદેવના મંત્રથી)', spouse: 'દ્રૌપદી, હિડિમ્બા, વલંધરા', siblings: 'યુધિષ્ઠિર, અર્જુન, નકુલ, સહદેવ', children: 'ઘટોત્કચ, સુતસોમ, સર્વગ' } },
+      
+      { id: 'arjuna', name: 'અર્જુન', role: 'શ્રેષ્ઠ ધનુર્ધર', backTitle: 'શ્રેષ્ઠ ધનુર્ધર', stat1: 'એકાગ્રતા અને સમર્પણ', stat2: 'ગાંડીવ ધનુષ', quote: 'મારું લક્ષ્ય માત્ર પક્ષીની આંખ છે.', 
+        desc: 'અર્જુન એટલે મહાભારત મહાકાવ્યના મુખ્ય નાયક અને તત્કાલીન દુનિયાના સર્વશ્રેષ્ઠ ધનુર્ધર. ઈન્દ્રદેવના આશીર્વાદ અને વરદાનથી જન્મેલા અર્જુન ગુરુ દ્રોણાચાર્યના સૌથી તેજસ્વી, મહેનતુ અને પ્રિય શિષ્ય હતા. અર્જુનની એકાગ્રતા અને શીખવાની લગન એટલી ગજબની હતી કે તેમણે અંધારામાં પણ અવાજ સાંભળીને સચોટ લક્ષ્ય વીંધવા માટે "શબ્દભેદી બાણ" ચલાવવાની વિદ્યા જાતે જ શીખી લીધી હતી. ગુરુની કસોટીમાં પણ માત્ર અર્જુનને જ ઝાડ પર બેઠેલા પક્ષીની માત્ર આંખ દેખાતી હતી.<br><br>તેમની વીરતાના અનેક પરાક્રમી કિસ્સાઓ મહાભારતમાં વર્ણવેલા છે, જેમાં ફરતી માછલીની આંખ વીંધીને (મત્સ્યવેધ) દ્રૌપદીને સ્વયંવરમાં જીતવી, અને ખાંડવ વનનું દહન કરી અગ્નિદેવને સંતુષ્ટ કરવા તથા તેના બદલામાં દિવ્ય "ગાંડીવ ધનુષ" પ્રાપ્ત કરવું એ મુખ્ય છે. પરંતુ કુરુક્ષેત્રના મેદાનમાં યુદ્ધ શરૂ થતા પહેલા જ, પોતાના સામે ઉભેલા ગુરુ, પિતામહ અને સ્વજનોને જોઈને અર્જુન ભારે મોહ અને શોકમાં ગરકાવ થઈ ગયા, અને પોતાના શસ્ત્રો મૂકી દીધા.<br><br>આ ઐતિહાસિક ક્ષણે ભગવાન શ્રી કૃષ્ણે અર્જુનના રથના સારથી તરીકે તેમને જે મહાન અને સનાતન ઉપદેશ આપ્યો, તે જ્ઞાન આજે આખી દુનિયામાં "શ્રીમદ્ ભગવદ્ ગીતા" તરીકે ઓળખાય છે. કૃષ્ણના આ દિવ્ય માર્ગદર્શન અને જ્ઞાનથી જ અર્જુનનો મોહભંગ થયો, અને તેમણે ભીષ્મ, દ્રોણ, કર્ણ અને જયદ્રથ જેવા અજેય મહારથીઓને યુદ્ધમાં હરાવીને પાંડવોને અંતિમ વિજય અપાવ્યો.', 
+        shloka: 'क्लीबं मा स्म गमः पार्थ', 
+        family: { parents: 'પાંડુ રાજા અને કુંતી (ઈન્દ્રદેવના મંત્રથી)', spouse: 'દ્રૌપદી, સુભદ્રા, ઉલૂપી, ચિત્રાંગદા', siblings: 'યુધિષ્ઠિર, ભીમ, નકુલ, સહદેવ', children: 'અભિમન્યુ, બભ્રુવાહન, ઇરાવાન, શ્રુતકર્મા' } },
+      
+      { id: 'nakula', name: 'નકુલ', role: 'અશ્વપાલક', backTitle: 'અદ્વિતીય સૌંદર્ય', stat1: 'સૌંદર્ય અને વફાદારી', stat2: 'તલવાર (Sword)', quote: 'હું મોટા ભાઈની આજ્ઞાનું પાલન કરીશ.', 
+        desc: 'નકુલ એ પાંડુ રાજાની બીજી પત્ની માદ્રીના બે પુત્રોમાંના મોટા પુત્ર હતા, જે દેવોના વૈદ્ય અશ્વિનીકુમારોના આહ્વાન અને વરદાનથી જન્મ્યા હતા. નકુલ સમગ્ર આર્યવર્તમાં તેમના અત્યંત આકર્ષક, મોહક અને અદ્વિતીય સુંદર દેખાવ માટે જાણીતા હતા. તેઓ અશ્વો (ઘોડાઓ) ની ભાષા સમજવામાં, તેમના પાલન, ઉછેર, તાલીમ અને તેમની અટપટી બીમારીઓ મટાડવામાં અત્યંત નિષ્ણાત હતા. તેમને અશ્વવિદ્યાનું સંપૂર્ણ જ્ઞાન હતું.<br><br>વનવાસ પછીના અજ્ઞાતવાસના એક વર્ષ દરમિયાન નકુલે પોતાની આ કળાનો ઉપયોગ કરીને વિરાટ રાજાના તબેલામાં "ગ્રંથિક" નામ ધારણ કરીને અશ્વપાલક તરીકે છુપા વેશે કાર્ય કર્યું હતું. યુદ્ધ કૌશલ્યમાં તેઓ તલવારબાજીના અજોડ અને ચપળ યોદ્ધા હતા. તેમના કૌશલ્ય વિશે એવું કહેવાય છે કે મુશળધાર વરસાદ પડતો હોય ત્યારે પણ નકુલ એવી ઝડપથી પોતાની તલવાર ચલાવી શકતા હતા કે તેમના શરીર પર પાણીનું એક પણ ટીપું પડતું નહિ અને તેઓ સંપૂર્ણ કોરા રહેતા.<br><br>નકુલ પોતાના સૌથી મોટા ભાઈ યુધિષ્ઠિર પ્રત્યે અત્યંત વફાદાર અને તેમની દરેક આજ્ઞાનું પાલન કરનારા હતા. જ્યારે વનવાસમાં યક્ષ પ્રશ્નના સમયે પાણી પીવા જતા બધા ભાઈઓ મૃત્યુ પામ્યા હતા, ત્યારે યુધિષ્ઠિરે યક્ષ પાસે કુંતી અને માદ્રી બંને માતાઓના એક-એક પુત્ર જીવિત રહે તેવા ન્યાય અને ધર્મની દ્રષ્ટિથી, ભીમ કે અર્જુનને બદલે નકુલનું જીવન પાછું માંગ્યું હતું.', 
+        shloka: 'नकुलः', 
+        family: { parents: 'પાંડુ રાજા અને માદ્રી (અશ્વિનીકુમાર)', spouse: 'દ્રૌપદી, કરેણુમતી', siblings: 'યુધિષ્ઠિર, ભીમ, અર્જુન, સહદેવ', children: 'શતાનિક, નિરમિત્ર' } },
+      
+      { id: 'sahadeva', name: 'સહદેવ', role: 'ત્રિકાળજ્ઞાની', backTitle: 'જ્ઞાની અને જ્યોતિષી', stat1: 'જ્ઞાન અને જ્યોતિષ', stat2: 'પરશુ (Axe)', quote: 'ભવિષ્ય નિર્ધારિત છે, માત્ર નિષ્કામ કર્મ કરો.', 
+        desc: 'પાંડવોમાં પાંચમા અને સૌથી નાના ભાઈ સહદેવ પણ માદ્રીના પુત્ર હતા અને અશ્વિનીકુમારોના આશીર્વાદથી જન્મ્યા હતા. તેઓ અત્યંત બુદ્ધિશાળી, શાંત સ્વભાવના અને મહાન ત્રિકાળજ્ઞાની (જ્યોતિષી) હતા. તેઓ કોઈ પણ ઘટનાના ભૂત, વર્તમાન અને ભવિષ્ય ત્રણેય કાળની પરિસ્થિતિઓ અગાઉથી જાણી અને સમજી શકતા હતા. પશુપાલન અને ખાસ કરીને ગાયોના ઉછેરમાં તેમને વિશેષ આવડત હતી. અજ્ઞાતવાસમાં તેમણે "તંતિપાળ" નામથી ગાયોના રક્ષક તરીકે વિરાટ રાજાને ત્યાં નોકરી કરી હતી.<br><br>એક પૌરાણિક કથા મુજબ, રાજા પાંડુની અંતિમ ઈચ્છા હતી કે તેમના પુત્રો તેમના જ્ઞાનનો વારસો મેળવે. આ માટે પાંડુ રાજાના મૃત્યુ પછી તેમના મસ્તિષ્કનો અમુક ભાગ ખાવાથી સહદેવને બ્રહ્માંડનું આખું ભવિષ્ય જોવાની અલૌકિક શક્તિ મળી હતી. પરંતુ તેમને એક કઠોર શ્રાપ પણ હતો કે જો તેઓ સામે ચાલીને કોઈને ભવિષ્યની ઘટનાઓ જણાવશે તો તરત જ તેમનું મૃત્યુ થશે. તેથી મહાભારતનું યુદ્ધ અને વિનાશ થવાનો છે તે પહેલેથી જ જાણતા હોવા છતાં, તેઓ લાચાર બનીને આજીવન મૌન જ રહ્યા હતા.<br><br>જ્યારે મહાભારતનું યુદ્ધ નક્કી થઈ ગયું, ત્યારે દુર્યોધન પોતાના દુશ્મન સહદેવ પાસે જ યુદ્ધ શરૂ કરવા માટે શ્રેષ્ઠ મુહૂર્ત કઢાવવા આવ્યો હતો. ત્રિકાળજ્ઞાની હોવાને નાતે સહદેવે શત્રુ હોવા છતાં કોઈ જ કપટ કર્યા વિના સાચું અને વિજયી મુહૂર્ત કાઢી આપ્યું હતું, જે તેમના અત્યંત ઉચ્ચ ચારિત્ર્ય અને ધર્મ નિષ્ઠાનું દર્શન કરાવે છે. યુદ્ધભૂમિ પર તેઓ પરશુ (કુહાડી) અને ખડગ ચલાવવામાં મહારથી હતા.', 
+        shloka: 'सहदेवः', 
+        family: { parents: 'પાંડુ રાજા અને માદ્રી (અશ્વિનીકુમાર)', spouse: 'દ્રૌપદી, વિજયા', siblings: 'યુધિષ્ઠિર, ભીમ, અર્જુન, નકુલ', children: 'શ્રુતસેન, સુહોત્ર' } },
+      
+      { id: 'draupadi', name: 'દ્રૌપદી', role: 'યજ્ઞસેની', backTitle: 'અગ્નિપુત્રી', stat1: 'સ્વાભિમાન અને સહનશીલતા', stat2: 'મહારાણી', quote: 'મારા અપમાનનો બદલો કુરુવંશના લોહીથી લેવાશે.', 
+        desc: 'દ્રૌપદી એ મહાભારત મહાકાવ્યનું સૌથી કેન્દ્રીય, શક્તિશાળી અને પ્રભાવશાળી સ્ત્રી પાત્ર છે. તેમનો જન્મ કોઈ માતાના ગર્ભમાંથી નહિ, પરંતુ પાંચાલ નરેશ દ્રુપદ દ્વારા આયોજિત કરાયેલા એક ભયંકર યજ્ઞની પ્રચંડ જ્વાળાઓમાંથી એક પુખ્ત સ્ત્રી તરીકે થયો હતો, તેથી તેમને "યજ્ઞસેની" પણ કહેવામાં આવે છે. તેઓ અત્યંત સુંદર, બુદ્ધિશાળી, નિડર અને સ્વાભિમાની સ્ત્રી હતા. પૂર્વ જન્મના ભગવાન શિવજીના એક વરદાનને કારણે (જેમાં તેમણે પાંચ ગુણો વાળો પતિ માંગ્યો હતો), તેઓ આ જન્મમાં પાંચેય પાંડવોની પત્ની (પંચાલી) બન્યા.<br><br>મહાભારતના ભીષણ અને વિનાશક યુદ્ધનું સૌથી મોટું અને મુખ્ય નિમિત્ત દ્રૌપદીનું અપમાન હતું. શકુનિના કપટથી રમાયેલી જુગારની રમતમાં હાર્યા પછી, ભરી સભામાં વડીલોની હાજરીમાં દુશાસન દ્વારા તેમનું ચીરહરણ (સાડી ખેંચવાનો) કરવાનો અત્યંત નીચ અને હીન પ્રયાસ કરવામાં આવ્યો હતો. આ સમયે જ્યારે તેમના પાંચેય પતિઓ અને સભાના દિગ્ગજો મૌન હતા, ત્યારે તેમના પરમ સખા ભગવાન શ્રી કૃષ્ણે અગણિત સાડીઓ પૂરી પાડીને તેમની લાજ અને ગૌરવની રક્ષા કરી હતી. આ કાળી ઘટનાથી ક્રોધિત થઈને દ્રૌપદીએ પોતાના ખુલ્લા વાળ દુશાસનના લોહીથી ન ધોવાય ત્યાં સુધી ન બાંધવાની ભીષણ અને ઐતિહાસિક પ્રતિજ્ઞા લીધી હતી.<br><br>વનવાસના ૧૩ વર્ષ દરમિયાન તેમણે અનેક શારીરિક અને માનસિક કષ્ટો સહન કર્યા, પરંતુ તેમણે ક્યારેય હાર માની નહિ અને પોતાના પતિઓને ધર્મયુદ્ધ માટે સતત પ્રેરિત કરતા રહ્યા. કુરુક્ષેત્રના યુદ્ધમાં વિજય પછી પણ અશ્વત્થામા દ્વારા પોતાના પાંચેય પુત્રોની નિર્દય હત્યાનું દુઃખ તેમણે ભોગવવું પડ્યું. દ્રૌપદી ભારતીય સંસ્કૃતિમાં સ્ત્રી શક્તિ, અદમ્ય સ્વાભિમાન અને અન્યાય સામે અવાજ ઉઠાવવાનું જીવંત અને સનાતન પ્રતીક છે.', 
+        shloka: 'यदा यदा हि धर्मस्य...', 
+        family: { parents: 'રાજા દ્રુપદ (યજ્ઞકુંડમાંથી જન્મ)', spouse: 'પાંચ પાંડવો', siblings: 'ધૃષ્ટદ્યુમ્ન, શિખંડી', children: 'પ્રતિવિંધ્ય, સુતસોમ, શ્રુતકર્મા, શતાનિક, શ્રુતસેન' } },
+    ];
+
+    // કૌરવો અને અન્ય પાત્રોની વિસ્તૃત માહિતી (20+ lines rendering)
+    const kauravas = [
+      { id: 'duryodhana', name: 'દુર્યોધન', role: 'કૌરવ રાજ', backTitle: 'કૌરવ નેતા', stat1: 'મહત્વાકાંક્ષા અને હઠ', stat2: 'ગદા (Mace)', quote: 'સોયની અણી જેટલી જમીન પણ પાંડવોને નહીં આપું.', 
+        desc: 'અંધ રાજા ધૃતરાષ્ટ્ર અને માતા ગાંધારીના ૧૦૦ પુત્રો (કૌરવો) માં સૌથી મોટો દુર્યોધન કૌરવ સેનાનો મુખ્ય નેતા અને હસ્તિનાપુરનો યુવરાજ હતો. તેનો જન્મ થયો ત્યારે આખા રાજ્યમાં ગધેડા ભૂંકવા લાગ્યા હતા, જે એક મોટા અપશુકન સમાન હતું. તે બાળપણથી જ પાંડવો, ખાસ કરીને ભીમ પ્રત્યે ખૂબ જ ઊંડી ઈર્ષ્યા, નફરત અને દ્વેષ ધરાવતો હતો. તેની એકમાત્ર મહત્વાકાંક્ષા કોઈપણ ભોગે અને કોઈપણ ખોટા માર્ગે હસ્તિનાપુરનું સંપૂર્ણ સિંહાસન મેળવવાની હતી.<br><br>દુર્યોધન માત્ર એક વિલન નહોતો, તે એક મહાન અને અત્યંત શક્તિશાળી ગદાધારી યોદ્ધા હતો અને ગુરુ બલરામનો સૌથી પ્રિય શિષ્ય હતો. તેણે કર્ણ જેવા રથહીન અને નીચલી જાતિના ગણાતા યોદ્ધાને જાહેરમાં અંગ દેશનો રાજા બનાવીને તેની સાચી મિત્રતા નિભાવી હતી, પરંતુ પાંડવો માટે તેનો મામા શકુનિ સાથે મળીને બનાવેલો દરેક પ્લાન (લાક્ષાગૃહમાં સળગાવી દેવા, ઝેર આપવું, દ્રૌપદીનું ચીરહરણ) અધર્મ, ક્રૂરતા અને કપટથી ભરેલો હતો.<br><br>જ્યારે મહાભારતનું યુદ્ધ ટાળવા માટે ભગવાન કૃષ્ણે પાંડવો તરફથી શાંતિ પ્રસ્તાવ મૂક્યો અને માત્ર પાંચ ગામની માંગણી કરી, ત્યારે દુર્યોધને પોતાના અહંકારમાં આંધળા થઈને સ્પષ્ટ ઇનકાર કર્યો કે "હું યુદ્ધ વિના સોયની અણી જેટલી જમીન પણ પાંડવોને નહીં આપું", જેના પરિણામે મહાભારતનું વિનાશકારી યુદ્ધ નિશ્ચિત બન્યું. માતા ગાંધારીના આશીર્વાદથી યુદ્ધના અંતિમ દિવસે તેનું આખું શરીર વજ્ર જેવું અજેય થઈ ગયું હતું, પરંતુ કૃષ્ણની ચાલાકીથી અને ઈશારાથી તેનો અંત ભીમની ગદાના પ્રહારથી તેની જાંઘ (સાથળ) પર થયો.', 
+        shloka: 'जानामि धर्मं न च मे प्रवृत्तिः', 
+        family: { parents: 'ધૃતરાષ્ટ્ર અને ગાંધારી', spouse: 'ભાનુમતી', siblings: 'દુશાસન વગેરે ૯૯ કૌરવો, દુઃશલા', children: 'લક્ષ્મણ કુમાર, લક્ષ્મણા' } },
+      
+      { id: 'dushasana', name: 'દુશાસન', role: 'દુષ્ટ ભાઈ', backTitle: 'વફાદાર પરંતુ દુષ્ટ ભાઈ', stat1: 'ક્રૂરતા', stat2: 'બળ', quote: 'દુર્યોધનની આજ્ઞા એ જ મારો ધર્મ.', 
+        desc: 'દુશાસન એ ૧૦૦ કૌરવોમાં દુર્યોધન પછીનો સૌથી મોટો અને મુખ્ય ભાઈ હતો. તે પોતાનું કોઈ સ્વતંત્ર મગજ ચલાવતો નહિ, પરંતુ દુર્યોધનનો પડછાયો બનીને રહેતો. તે મોટા ભાઈ દુર્યોધનની દરેક સારી-ખોટી આજ્ઞાનું અને તેના ષડયંત્રોનું આંખ બંધ કરીને કઠોરતાથી પાલન કરતો. બુદ્ધિ કરતા તેનામાં શારીરિક બળ વધુ હતું, અને પાંડવો પ્રત્યેની તેની નફરત પણ દુર્યોધન જેટલી જ પ્રબળ હતી.<br><br>મહાભારતના સમગ્ર ઇતિહાસમાં દુશાસનનું નામ સૌથી કલંકિત અને અધર્મી ઘટના સાથે જોડાયેલું છે. શકુનિના કપટથી રમાયેલી જુગારની રમતમાં પાંડવો પોતાનું બધું હાર્યા પછી, દુર્યોધનના આદેશથી દુશાસન જ દ્રૌપદીના અંતઃપુરમાં ગયો અને ઋતુમતી દ્રૌપદીને વાળ પકડીને આખી સભામાં ઢસડી લાવ્યો હતો. એટલું જ નહીં, વડીલો અને ગુરુઓની હાજરીમાં તેણે જ દ્રૌપદીના વસ્ત્રો ખેંચીને તેનું ચીરહરણ કરવાનો અત્યંત નીચ અને અમાનવીય પ્રયાસ કર્યો હતો.<br><br>આ દુષ્કર્મનો ભયંકર દંડ તેને કુરુક્ષેત્રના યુદ્ધના મેદાનમાં મળ્યો. ભીમે વર્ષો પહેલા લીધેલી પોતાની કઠોર પ્રતિજ્ઞા પૂરી કરતા યુદ્ધના ૧૬મા દિવસે દુશાસનને જમીન પર પછાડીને તેની છાતી ચીરી નાખી અને તેનું લોહી પીધું હતું. ભીમે એ જ લોહી દ્રૌપદી પાસે લઈ જઈને તેના ખુલ્લા વાળ ધોવા માટે પૂરું પાડ્યું હતું. દુશાસનનું પાત્ર અંધભક્તિ, અહંકાર અને સ્ત્રીના અપમાનનું ખરાબ પરિણામ દર્શાવે છે.', 
+        shloka: 'दुःशासनः', 
+        family: { parents: 'ધૃતરાષ્ટ્ર અને ગાંધારી', spouse: 'ચંદ્રમતી (માન્યતા મુજબ)', siblings: 'દુર્યોધન વગેરે ૯૯ કૌરવો', children: 'ભાર્ગવ' } },
+      
+      { id: 'krishna', name: 'શ્રી કૃષ્ણ', role: 'જગદગુરુ', backTitle: 'દિવ્ય માર્ગદર્શક', stat1: 'દિવ્યતા અને રણનીતિ', stat2: 'સુદર્શન ચક્ર', quote: 'કર્મણ્યે વાધિકારસ્તે મા ફલેષુ કદાચન.', 
+        desc: 'ભગવાન શ્રી કૃષ્ણ સ્વયં ભગવાન વિષ્ણુના આઠમા અને સંપૂર્ણ અવતાર હતા. મહાભારતમાં તેઓ માત્ર એક પાત્ર નથી, પરંતુ આખા મહાકાવ્યના કેન્દ્રબિંદુ, સૂત્રધાર અને સંચાલક છે. મથુરાના કારાવાસમાં દેવકીના ગર્ભથી જન્મેલા અને ગોકુળમાં યશોદાના આંગણે ઉછરેલા કૃષ્ણ, પાંડવોના માર્ગદર્શક, પરમ મિત્ર, રક્ષક અને કુરુક્ષેત્રના યુદ્ધમાં અર્જુનના રથના સારથી બન્યા હતા.<br><br>કૃષ્ણે યુદ્ધમાં શસ્ત્ર ન ઉપાડવાની અને પોતે યુદ્ધ ન લડવાની પ્રતિજ્ઞા લીધી હતી, છતાં પોતાની અદભુત રણનીતિ, ચતુરાઈ અને કૂટનીતિથી તેમણે પાંડવોને ડગલે ને પગલે અધર્મ સામે વિજય અપાવ્યો. દ્રૌપદીની લાજ બચાવવાથી લઈને લાક્ષાગૃહમાંથી પાંડવોને સુરક્ષિત કાઢવા, અને યુદ્ધમાં ભીષ્મ, દ્રોણ, જયદ્રથ અને કર્ણ જેવા અજેય મહારથીઓની નબળાઈઓ શોધી તેમને હરાવવાના માર્ગો સ્વયં કૃષ્ણે જ બતાવ્યા હતા.<br><br>યુદ્ધ શરૂ થતા પહેલા જ્યારે અર્જુન પોતાના સ્વજનોને જોઈને હતાશ થઈ ગયો અને શસ્ત્રો નીચે મુકી દીધા, ત્યારે શ્રી કૃષ્ણે તેને કુરુક્ષેત્રની મધ્યમાં "શ્રીમદ્ ભગવદ્ ગીતા" નો સનાતન અને મહાન ઉપદેશ આપ્યો. તેમણે અર્જુનને પોતાનું ઐશ્વર્યવાન "વિશ્વરૂપ દર્શન" કરાવીને સમજાવ્યું કે આત્મા અમર છે, શરીર નાશવંત છે, અને ફળની આશા રાખ્યા વિના ધર્મ અને સત્ય માટે નિષ્કામ કર્મ કરવું એ જ મનુષ્યનો શ્રેષ્ઠ માર્ગ છે.', 
+        shloka: 'यदा यदा हि धर्मस्य ग्लानिर्भवति भारत', 
+        family: { parents: 'વસુદેવ અને દેવકી (પાલક: નંદ અને યશોદા)', spouse: 'રુક્મિણી, સત્યભામા, જાંબવતી વગેરે ૧૬૧૦૮', siblings: 'બલરામ, સુભદ્રા', children: 'પ્રદ્યુમ્ન, સામ્બ વગેરે' } },
+      
+      { id: 'karna', name: 'કર્ણ', role: 'દાનવીર', backTitle: 'મહાન પરંતુ દુર્ભાગી યોદ્ધા', stat1: 'દાન અને મિત્રતા', stat2: 'વિજય ધનુષ', quote: 'જીવનમાં ગમે તે જાય, પણ મારું આપેલું વચન ન જાય.', 
+        desc: 'સૂર્યપુત્ર કર્ણ મહાભારતનું સૌથી કરુણ, જટિલ અને શક્તિશાળી પાત્ર છે. લગ્ન પૂર્વે માતા કુંતીને ઋષિ દુર્વાસાના સૂર્યદેવના મંત્રથી કર્ણની પ્રાપ્તિ થઈ હતી. સમાજના ડરથી કુંતીએ બાળક કર્ણને એક પેટીમાં મૂકીને નદીમાં વહાવી દીધો, અને અંતે તેનો ઉછેર અધિરથ નામના એક સારથીના ઘરે થયો. સૂર્યદેવના અંશ હોવાથી જન્મથી જ તેને શરીર સાથે જડાયેલા દિવ્ય કવચ અને કુંડળ મળ્યા હતા જે તેને અજેય બનાવતા હતા.<br><br>આજીવન "સૂતાપુત્ર" હોવાના મેણાં સાંભળવા છતાં અને ગુરુ દ્રોણ દ્વારા શિક્ષણનો અસ્વીકાર થવા છતાં, તે પરશુરામ પાસેથી વિદ્યા શીખીને અર્જુન જેટલો જ મહાન ધનુર્ધર બન્યો. જ્યારે સમાજ તેને અપમાનિત કરતો હતો ત્યારે દુર્યોધને તેને ભરી સભામાં અંગ દેશનો રાજા બનાવી મિત્રતા નિભાવી, તેથી કર્ણ આજીવન દુર્યોધનનો ઋણી અને અત્યંત વફાદાર મિત્ર રહ્યો. કર્ણ તેના દાન માટે સમગ્ર વિશ્વમાં પ્રખ્યાત હતો; દરરોજ સવારે સૂર્યપૂજા પછી જે કોઈ જે માંગે તે કર્ણ હસતા મુખે આપી દેતો. યુદ્ધ પહેલા ઈન્દ્રદેવે બ્રાહ્મણનો વેશ લઈને કપટથી તેના રક્ષક કવચ-કુંડળ માંગી લીધા, તો પણ તેણે જાણવા છતાં પોતાના પ્રાણની પરવા કર્યા વિના તેનું દાન કરી દીધું.<br><br>તેના જીવનમાં દુર્ભાગ્યની વણથંભી હારમાળા હતી—પોતાના સગા ભાઈઓ (પાંડવો) સામે લડવું, પરશુરામનો શ્રાપ (અંતિમ સમયે વિદ્યા ભૂલી જવી), પૃથ્વી માતાનો શ્રાપ, અને અંતે યુદ્ધમાં રથનું પૈડું જમીનમાં ખૂંપી જવું. આ બધી પ્રતિકૂળતાઓ વચ્ચે જ્યારે તે નિઃશસ્ત્ર રથનું પૈડું કાઢી રહ્યો હતો ત્યારે કૃષ્ણના કહેવાથી અર્જુને કર્ણનો વધ કર્યો. કર્ણ મિત્રતા, અદભુત શૌર્ય અને દાનવીરતાનું અમર પ્રતીક છે.', 
+        shloka: 'हतो वा प्राप्स्यसि स्वर्गं जित्वा वा भोक्ष्यसे महीम्', 
+        family: { parents: 'સૂર્યદેવ અને કુંતી (પાલક: અધિરથ અને રાધા)', spouse: 'વૃષાલી, સુપ્રિયા', siblings: 'પાંડવો (માતૃ પક્ષે)', children: 'વૃષસેન, સુશેણ, વૃષકેતુ વગેરે' } },
+      
+      { id: 'shakuni', name: 'શકુનિ', role: 'ગાંધાર નરેશ', backTitle: 'ષડયંત્રનો માસ્ટરમાઇન્ડ', stat1: 'કુટિલ બુદ્ધિ', stat2: 'જાદુઈ પાસા (Dice)', quote: 'મારા પાસા મારી આજ્ઞા માને છે, ભાણેજ!', 
+        desc: 'ગાંધાર નરેશ શકુનિ એ મહાભારતના સમગ્ર વિનાશક ખેલનો મુખ્ય ષડયંત્રકાર અને ભેજાબાજ હતો. પોતાની વહાલી બહેન ગાંધારીના લગ્ન જન્મથી આંધળા ધૃતરાષ્ટ્ર સાથે ભીષ્મના દબાણથી બળજબરીથી કરાવવામાં આવ્યા હતા. ત્યારબાદ કથાઓ મુજબ ભીષ્મ દ્વારા તેના પરિવાર અને પિતાને કારાવાસમાં ભૂખ્યા રાખીને મારી નાખવામાં આવ્યા હતા, આથી શકુનિના મનમાં કુરુવંશ અને ભીષ્મ પ્રત્યે ભયંકર ક્રોધ અને બદલાની ભાવના હતી.<br><br>તેણે આજીવન હસ્તિનાપુરમાં રહીને પ્રતિજ્ઞા લીધી હતી કે તે કૌરવ વંશનો સમૂળગો અને નિર્દયતાથી નાશ કરશે. આ માટે તેણે કૌરવો અને પાંડવો વચ્ચે બાળપણથી જ દુશ્મનાવટના ઝેરી બીજ વાવ્યા. દુર્યોધનની આંખે પાટા બાંધીને તેને પાંડવો વિરુદ્ધ સતત ખોટા માર્ગે દોરનાર અને ઉશ્કેરનાર શકુનિ જ હતો. લાક્ષાગૃહમાં પાંડવોને જીવતા સળગાવી દેવાનું કાવતરું પણ તેના જ શાતિર ભેજાની ઉપજ હતી.<br><br>તેના પાસે તેના પિતાના હાડકામાંથી બનેલા જાદુઈ પાસા હતા, જે કોઈ ચમત્કારની જેમ માત્ર તેની આજ્ઞા મુજબ જ પડતા હતા. આ જાદુઈ પાસાઓનો ઉપયોગ કરીને તેણે કપટથી ધર્મરાજ યુધિષ્ઠિરને જુગારમાં હરાવ્યા, તેમનું રાજપાટ પડાવી લીધું અને દ્રૌપદીના ચીરહરણનું માધ્યમ બનીને મહાભારતના મહાવિનાશનો મજબૂત પાયો નાખ્યો. સહદેવના હાથે યુદ્ધના ૧૮મા અને અંતિમ દિવસે શકુનિનો અંત આવ્યો.', 
+        shloka: 'विनाशकाले विपरीत बुद्धि', 
+        family: { parents: 'રાજા સુબલ', spouse: 'આરશી', siblings: 'ગાંધારી', children: 'ઉલૂક, વૃકાસુર' } },
+      
+      { id: 'bhishma', name: 'ભીષ્મ', role: 'પિતામહ', backTitle: 'અટલ પ્રતિજ્ઞા', stat1: 'ભીષણ પ્રતિજ્ઞા', stat2: 'બાણ (Arrows)', quote: 'હસ્તિનાપુરનું સિંહાસન સુરક્ષિત રહે, એ જ મારો ધર્મ.', 
+        desc: 'ગંગા માતા અને રાજા શંતનુના પુત્ર દેવવ્રત એ મહાભારતના સૌથી આદરણીય, વયોવૃદ્ધ અને શક્તિશાળી યોદ્ધા હતા. પોતાના પિતા રાજા શંતનુને માછીમારની પુત્રી સત્યવતી સાથે પરણાવવા માટે અને સત્યવતીના પિતાની શરત પૂરી કરવા માટે, દેવવ્રતે આજીવન અખંડ બ્રહ્મચર્ય પાળવાની અને ક્યારેય હસ્તિનાપુરના સિંહાસન પર ન બેસવાની અત્યંત ભીષણ (કઠોર) પ્રતિજ્ઞા લીધી હતી, જેના કારણે આખા બ્રહ્માંડમાં તેઓ "ભીષ્મ" તરીકે પ્રખ્યાત થયા.<br><br>તેમના આ અદભુત ત્યાગ અને બલિદાન બદલ પિતા શંતનુએ તેમને "ઈચ્છામૃત્યુ" (જ્યાં સુધી પોતે ન ઈચ્છે ત્યાં સુધી કાળ પણ તેમનો જીવ ન લઈ શકે) નું દુર્લભ વરદાન આપ્યું હતું. ભીષ્મ પિતામહ સારી રીતે જાણતા હતા કે દુર્યોધન અને કૌરવો અધર્મના માર્ગે ચાલી રહ્યા છે, પરંતુ હસ્તિનાપુરના સિંહાસનનું રક્ષણ કરવાની પોતાની પ્રતિજ્ઞા અને રાજ્યના મીઠાના ઋણમાં બંધાયેલા હોવાને કારણે તેમણે કમને કૌરવોના સેનાપતિ તરીકે પાંડવો સામે ૧૦ દિવસ સુધી યુદ્ધ લડવું પડ્યું.<br><br>તેઓ યુદ્ધમાં સંપૂર્ણપણે અજેય હતા અને દરરોજ ૧૦ હજાર સૈનિકોનો ખાતમો બોલાવતા હતા. અંતે, પાંડવોના વિજય માટે ભીષ્મે જાતે જ પોતાના મૃત્યુનો ઉપાય જણાવ્યો. અર્જુને શિખંડી (જે પાછલા જન્મમાં સ્ત્રી હતી અને ભીષ્મ સ્ત્રી પર શસ્ત્ર ઉપાડતા નહિ) ને ઢાલ બનાવીને તેમના પર બાણોનો વરસાદ કર્યો. ભીષ્મ પિતામહ ૫૮ દિવસ સુધી તીરની અણીઓથી બનેલી બાણ શૈયા પર સૂતા રહ્યા અને સૂર્ય ઉત્તરાયણ થયા પછી જ શાંતિથી પોતાનો દેહ ત્યાગ્યો.', 
+        shloka: 'भीष्मः', 
+        family: { parents: 'રાજા શંતનુ અને ગંગામાતા', spouse: 'આજીવન બ્રહ્મચારી', siblings: 'ચિત્રાંગદ, વિચિત્રવીર્ય (સાવકા)', children: 'કોઈ નહીં' } },
+      
+      { id: 'gandhari', name: 'ગાંધારી', role: 'માતા', backTitle: 'પતિવ્રતા', stat1: 'ત્યાગ અને તપસ્યા', stat2: 'આંખે પાટા (Blindfold)', quote: 'જ્યાં ધર્મ છે, ત્યાં જ વિજય છે (યતો ધર્મસ્તતો જયઃ).', 
+        desc: 'ગાંધાર દેશની રાજકુમારી ગાંધારીના લગ્ન હસ્તિનાપુરના યુવરાજ ધૃતરાષ્ટ્ર સાથે નક્કી થયા હતા. પરંતુ જ્યારે તેમને પાછળથી જાણ થઈ કે તેમના ભાવિ પતિ જન્મથી જ અંધ છે, ત્યારે એક આદર્શ પત્ની અને પતિવ્રતા ધર્મ પાળવા માટે તેમણે પણ આજીવન પોતાની બંને આંખો પર કાળા કપડાના પાટા બાંધી લેવાનો અત્યંત કઠોર નિર્ણય લીધો. તેમણે વિચાર્યું કે જે દુનિયા મારો પતિ નથી જોઈ શકતો, તે મારે પણ નથી જોવી. આ એક અદભુત ત્યાગ અને સમર્પણનું ઐતિહાસિક ઉદાહરણ હતું.<br><br>મહર્ષિ વ્યાસની સેવા કરવાથી તેમને ૧૦૦ પુત્રોની પ્રાપ્તિનું વરદાન મળ્યું હતું, જેના ફળસ્વરૂપ તેઓ ૧૦૦ કૌરવો અને ૧ પુત્રી (દુઃશલા) ની માતા બન્યા. ગાંધારી ભગવાન શિવના પરમ ભક્ત હતા અને આજીવન આંખે પાટા બાંધવાની તેમની કઠોર તપસ્યાને કારણે તેમની દ્રષ્ટિમાં એક અદભુત દિવ્ય શક્તિ આવી ગઈ હતી. યુદ્ધના અંતિમ દિવસોમાં તેમણે પોતાના વહાલા પુત્ર દુર્યોધનના શરીરને વજ્ર સમાન અજેય બનાવવા માટે જીવનમાં પહેલી અને છેલ્લી વાર પોતાની આંખનો પાટો ખોલ્યો હતો.<br><br>ગાંધારી એક અત્યંત ન્યાયપ્રિય અને ધાર્મિક માતા હતી. તેમણે દુર્યોધનને હંમેશા પાંડવો સાથે સંધિ કરવા સમજાવ્યો હતો અને જ્યારે દુર્યોધન આશીર્વાદ લેવા આવતો ત્યારે પણ તેઓ "જ્યાં ધર્મ છે ત્યાં વિજય છે" એવું જ કહેતા. યુદ્ધમાં પોતાના ૧૦૦ પુત્રોના એકસાથે મૃત્યુથી અત્યંત કલ્પાંત કરી અને દુઃખી થઈને, તેમણે ભગવાન શ્રી કૃષ્ણને શ્રાપ આપ્યો હતો કે જે રીતે મારો કુરુવંશ નાશ પામ્યો છે, તે જ રીતે આવનારા ૩૬ વર્ષોમાં તમારા યાદવ કુળનો પણ અંદરોઅંદર લડીને યાતનામય અંત આવશે.', 
+        shloka: 'गांधारी', 
+        family: { parents: 'રાજા સુબલ', spouse: 'ધૃતરાષ્ટ્ર', siblings: 'શકુનિ', children: 'દુર્યોધન સહિત ૧૦૦ કૌરવો, ૧ પુત્રી દુઃશલા' } },
+      
+      { id: 'dhritarashtra', name: 'ધૃતરાષ્ટ્ર', role: 'અંધ રાજા', backTitle: 'અંધ રાજા', stat1: 'પુત્રમોહ', stat2: 'મુગટ (Crown)', quote: 'મારો પુત્રમોહ જ મારી સૌથી મોટી નબળાઈ છે.', 
+        desc: 'હસ્તિનાપુરના મહારાજા ધૃતરાષ્ટ્રનો જન્મ મહર્ષિ વ્યાસના આશીર્વાદથી રાણી અંબિકાના ગર્ભથી થયો હતો. પરંતુ ગર્ભાધાન સમયે મહર્ષિના તેજથી ભયભીત થઈને અંબિકાએ પોતાની આંખો બંધ કરી દીધી હોવાથી, ધૃતરાષ્ટ્ર જન્મથી જ સંપૂર્ણ અંધ જન્મ્યા હતા. અંધ હોવા છતાં તેમનામાં દસ હજાર હાથીઓ જેટલું અપાર શારીરિક બળ હતું. જન્મથી અંધ હોવાને કારણે નિયમ મુજબ તેમને રાજા ન બનાવી શકાયા, પરંતુ પાછળથી પાંડુ રાજાના જંગલમાં વનવાસ જવાને કારણે તેમને કાર્યકારી રાજા તરીકે હસ્તિનાપુરનું સિંહાસન મળ્યું હતું.<br><br>ધૃતરાષ્ટ્ર માત્ર શારીરિક રીતે જ નહિ, પરંતુ આંતરિક રીતે પોતાના જ્યેષ્ઠ પુત્ર દુર્યોધનના મોહમાં પણ સંપૂર્ણ અંધ હતા. દુર્યોધનની દરેક વાજબી અને ગેરવાજબી માંગણીઓ તે પુત્રપ્રેમમાં આંધળા બનીને સ્વીકારી લેતા હતા. તેમને પાંડવોની યુદ્ધ શક્તિ, તેમના ગુણો અને પ્રજામાં તેમની લોકપ્રિયતાની અંદરખાને અત્યંત ઈર્ષ્યા આવતી હતી અને તેથી દુર્યોધનના દરેક અધર્મી અને કપટી કાર્યો (જુગાર, વનવાસ) ને તેઓ હંમેશા મૌન સંમતિ આપતા રહ્યા.<br><br>તેમની આ નબળાઈ અને અન્યાયી વલણે જ મહાભારતના મહાવિનાશને નોંતરું આપ્યું. ૧૮ દિવસના યુદ્ધમાં પોતાના ૧૦૦ પુત્રોના મૃત્યુ બાદ તેમનો પાંડવો પ્રત્યેનો ક્રોધ એટલો પ્રચંડ હતો કે જ્યારે ભીમ તેમના આશીર્વાદ લેવા આવ્યો, ત્યારે તેમણે ભીમનું આલિંગન કરી તેને કચડી નાખવાનો પ્રયાસ કર્યો હતો. પરંતુ કૃષ્ણની અગમચેતીથી ભીમના બદલે લોખંડની મૂર્તિ આગળ ધરી દેવાઈ, અને ધૃતરાષ્ટ્રના બળથી તે લોખંડની મૂર્તિનો ભૂકો થઈ ગયો હતો.', 
+        shloka: 'धृतराष्ट्र', 
+        family: { parents: 'મહર્ષિ વ્યાસ અને અંબિકા', spouse: 'ગાંધારી', siblings: 'પાંડુ, વિદુર', children: '૧૦૦ કૌરવો અને દુઃશલા (તેમજ દાસી પુત્ર યુયુત્સુ)' } },
+      
+      { id: 'drona', name: 'દ્રોણાચાર્ય', role: 'રાજગુરુ', backTitle: 'શસ્ત્રવિદ્યાના આચાર્ય', stat1: 'ધનુર્વિદ્યા અને વ્યૂહરચના', stat2: 'ધનુષ-બાણ', quote: 'ગુરુ દક્ષિણા એ જ શિષ્યની કસોટી છે.', 
+        desc: 'ભગવાન પરશુરામના અદભુત શિષ્ય અને મહર્ષિ ભરદ્વાજના પુત્ર દ્રોણાચાર્ય કૌરવો અને પાંડવો બંનેના સન્માનિત રાજગુરુ હતા. તેમનો જન્મ એક દ્રોણ (યજ્ઞના પાત્ર) માંથી થયો હતો. તેઓ અસ્ત્ર-શસ્ત્ર વિદ્યા અને યુદ્ધના અત્યંત અટપટા વ્યૂહો (જેમ કે ચક્રવ્યૂહ, મકરવ્યૂહ) રચવામાં સમગ્ર દુનિયામાં અજોડ મહારથી હતા. અર્જુન તેમની નજરમાં સર્વશ્રેષ્ઠ ધનુર્ધર હતો અને તેમનો સૌથી પ્રિય શિષ્ય પણ હતો, જેના માટે તેમણે એકલવ્ય પાસે અંગૂઠાની ગુરુદક્ષિણા માંગી હતી.<br><br>પોતાના એકમાત્ર પુત્ર અશ્વત્થામા પ્રત્યે તેમને અત્યંત અને આંધળો મોહ હતો. બાળપણની ગરીબીના દિવસોમાં જ્યારે તેઓ પોતાના પુત્ર માટે દૂધ માંગવા ગયા હતા, ત્યારે તેમના બાળપણના મિત્ર રાજા દ્રુપદે તેમનું ભયંકર અપમાન કર્યું હતું. આ અપમાનનો બદલો લેવા જ તેમણે પાંડવોને અસ્ત્રવિદ્યા શીખવી અને ગુરુદક્ષિણામાં દ્રુપદને હરાવીને બંદી બનાવી લાવવાનું કહ્યું હતું. દ્રોણાચાર્ય હસ્તિનાપુર રાજ્યના મીઠા નીચે અને આશ્રયમાં દબાયેલા હોવાથી, તેઓ આંતરિક રીતે ઈચ્છતા ન હોવા છતાં ધર્મ વિરુદ્ધ કૌરવોના પક્ષે લડ્યા હતા.<br><br>ભીષ્મ પિતામહના પતન પછી તેઓ કૌરવ સેનાના મુખ્ય સેનાપતિ બન્યા અને તેમણે જ રચેલા ચક્રવ્યૂહમાં યુવા અભિમન્યુનો ઘેરાવ કરી તેની હત્યા કરવામાં આવી હતી. તેમના હાથમાં શસ્ત્ર હોય ત્યાં સુધી દેવતાઓ માટે પણ તેમને હરાવવા અશક્ય હતા. અંતે શ્રી કૃષ્ણની વ્યૂહરચનાથી "અશ્વત્થામા હણાયો (હાથી)" એવા ધર્મરાજ યુધિષ્ઠિરના અર્ધસત્ય વાક્યથી પુત્રશોકમાં ડૂબીને દ્રોણાચાર્યે શસ્ત્ર નીચે મુકી દીધા, અને તે જ ક્ષણે દ્રુપદના પુત્ર ધૃષ્ટદ્યુમ્ને તલવારથી તેમનો શિરોચ્છેદ કર્યો.', 
+        shloka: 'आचार्यो ब्राह्मणो मूर्तिः', 
+        family: { parents: 'મહર્ષિ ભરદ્વાજ', spouse: 'કૃપી (કૃપાચાર્યની બહેન)', siblings: 'કોઈ નહીં', children: 'અશ્વત્થામા' } },
+      
+      { id: 'abhimanyu', name: 'અભિમન્યુ', role: 'વીર યોદ્ધા', backTitle: 'યુવા વીર', stat1: 'શૌર્ય અને વીરતા', stat2: 'ચક્રવ્યૂહ', quote: 'ચક્રવ્યૂહ ભેદવો એ મારો વારસો છે.', 
+        desc: 'વીર અભિમન્યુ એ મહાન ધનુર્ધર અર્જુન અને શ્રી કૃષ્ણની બહેન સુભદ્રાનો પરાક્રમી પુત્ર તથા શ્રી કૃષ્ણનો વહાલો ભાણેજ હતો. એવું કહેવાય છે કે જ્યારે અભિમન્યુ માતાના ગર્ભમાં હતો ત્યારે જ તેણે પોતાના પિતા અર્જુન પાસેથી દુશ્મનના અત્યંત અગમ્ય અને જીવલેણ "ચક્રવ્યૂહ" માં પ્રવેશ કરવાની વિદ્યા સંપૂર્ણપણે સાંભળીને યાદ રાખી લીધી હતી. પરંતુ ચક્રવ્યૂહમાંથી સુરક્ષિત બહાર નીકળવાની વિદ્યા અર્જુન વર્ણવે તે પહેલા માતા સુભદ્રાને ઊંઘ આવી ગઈ હોવાથી, તે વિદ્યાથી અભિમન્યુ અજાણ રહી ગયો હતો.<br><br>કુરુક્ષેત્રના યુદ્ધના ૧૩મા દિવસે, જ્યારે દ્રોણાચાર્યે ચક્રવ્યૂહની ભયંકર રચના કરી અને અર્જુન યુદ્ધભૂમિથી ખૂબ દૂર બીજા છેડે લડી રહ્યો હતો, ત્યારે માત્ર 16 વર્ષના યુવા અભિમન્યુએ પાંડવ સેના અને યુધિષ્ઠિરનું રક્ષણ કરવા માટે એકલે હાથે ચક્રવ્યૂહમાં પ્રવેશ કર્યો. તેણે અંદર જઈને એવું અદભુત અને પ્રચંડ શૌર્ય દેખાડ્યું કે કૌરવોના મોટા મોટા મહારથીઓને ધૂળ ચટાડી દીધી અને દુર્યોધનના પુત્ર લક્ષ્મણનો પણ વધ કર્યો.<br><br>આ યુવાનની વીરતા જોઈને કૌરવ છાવણીમાં ભય ફેલાઈ ગયો. અંતે યુદ્ધના તમામ નિયમો અને મર્યાદાઓ નેવે મૂકીને કર્ણ, દ્રોણ, દુશાસન, અશ્વત્થામા અને અન્ય મહારથીઓએ કાયરતાપૂર્વક ભેગા મળીને આ એકલા અને નિઃશસ્ત્ર યુવાન પર ચારે બાજુથી નિર્દયતાથી પ્રહાર કર્યા. રથનું પૈડું ઉપાડીને લડતો આ યુવાન અંતે વીરગતિ પામ્યો. અભિમન્યુનું આ સર્વોચ્ચ બલિદાન મહાભારતની સૌથી હૃદયદ્રાવક, શૂરવીર અને પ્રેરણાદાયક ગાથા છે.', 
+        shloka: 'शूरं च कृतविद्यं च', 
+        family: { parents: 'અર્જુન અને સુભદ્રા', spouse: 'ઉત્તરા', siblings: 'શ્રુતકર્મા, બભ્રુવાહન, ઇરાવાન (સાવકા)', children: 'પરીક્ષિત (જેણે પાંડવ વંશ આગળ વધાર્યો)' } },
+      
+      { id: 'kunti', name: 'કુંતી', role: 'રાજમાતા', backTitle: 'માતા અને તપસ્વીની', stat1: 'ધૈર્ય અને ભક્તિ', stat2: 'મંત્ર શક્તિ', quote: 'હે કૃષ્ણ, મને હંમેશા દુઃખ જ આપજે, જેથી તું યાદ રહે.', 
+        desc: 'મહારાણી કુંતી એ પાંચ પાંડવોની માતા, રાજા પાંડુની પ્રથમ પત્ની અને શ્રી કૃષ્ણના પિતા વસુદેવની સગી બહેન હતા. બાળપણમાં ઋષિ દુર્વાસાની નિષ્ઠાપૂર્વક સેવા કરવાથી પ્રસન્ન થઈને ઋષિએ તેમને એક દિવ્ય મંત્ર આપ્યો હતો, જેના દ્વારા તેઓ કોઈપણ દેવતાનું આહ્વાન કરીને તેમના અંશથી પુત્ર પ્રાપ્ત કરી શકતા હતા. લગ્ન પહેલાં કુવારા હોવા છતાં માત્ર કૌતુક ખાતર સૂર્યદેવનું આહ્વાન કરવાથી તેમને કર્ણ જન્મ્યો હતો, જેને સમાજની લાજના ડરથી તેમણે ભારે હૈયે નદીમાં વહાવી દેવો પડ્યો હતો.<br><br>માતા કુંતીનું આખું જીવન સંઘર્ષ, ત્યાગ અને દુઃખોથી ભરેલું રહ્યું. જંગલમાં પતિ રાજા પાંડુના અકાળ મૃત્યુ પછી અને બીજી પત્ની માદ્રીના સતી થયા પછી, કુંતીએ ૫ પુત્રો (૩ પોતાના અને ૨ માદ્રીના) ને એકલા હાથે અત્યંત ધૈર્યથી મોટા કર્યા. લાક્ષાગૃહના ષડયંત્રમાંથી બચવું, અરણ્યમાં ભટકવું અને ૧૩ વર્ષનો લાંબો વનવાસ વેઠવો—આ બધું કુંતીએ ભારે મક્કમતાથી સહન કર્યું. તેમણે જ અજાણતામાં પાંડવોને ભિક્ષામાં લાવેલી વસ્તુ એકબીજા સાથે વહેંચીને લેવાનો આદેશ આપ્યો હતો, જેના કારણે દ્રૌપદી પાંચેયની પત્ની બની.<br><br>તેમનું પાત્ર એક સશક્ત અને ભક્તિભાવ વાળી માતાનું છે. મહાભારતના યુદ્ધ પછી જ્યારે પાંડવોને રાજપાટ મળી ગયું, ત્યારે શ્રી કૃષ્ણ હસ્તિનાપુરથી વિદાય લઈને દ્વારકા જતા હતા. કૃષ્ણે પોતાની ફઈ કુંતીને કોઈ વરદાન માંગવા કહ્યું, ત્યારે કુંતીએ ઇતિહાસનું સૌથી અનોખું વરદાન માંગતા કહ્યું: "હે માધવ, મને જીવનભર માત્ર દુઃખ અને વિપત્તિઓ જ આપજે, કારણ કે સુખમાં માણસ ભગવાનને ભૂલી જાય છે, જ્યારે દુઃખમાં જ ઈશ્વર હંમેશા યાદ આવે છે." આ તેમની અનન્ય અને નિસ્વાર્થ ભક્તિ દર્શાવે છે.', 
+        shloka: 'कुन्तीभोजसुता', 
+        family: { parents: 'રાજા શૂરસેન (પાલક: કુંતીભોજ)', spouse: 'રાજા પાંડુ', siblings: 'વસુદેવ', children: 'કર્ણ, યુધિષ્ઠિર, ભીમ, અર્જુન' } },
+      
+      { id: 'vidur', name: 'વિદુર', role: 'મહામંત્રી', backTitle: 'ન્યાય અને નીતિ', stat1: 'ડહાપણ અને સત્ય', stat2: 'ન્યાય અને નીતિ', quote: 'ધર્મ જ માણસનો એકમાત્ર સાચો મિત્ર છે, જે મૃત્યુ પછી પણ સાથે આવે છે.', 
+        desc: 'મહાત્મા વિદુર એ સાક્ષાત્ યમરાજ (ધર્મરાજ) ના અંશાવતાર હતા. માંડવ્ય ઋષિના શ્રાપને કારણે યમરાજે મનુષ્ય યોનિમાં જન્મ લેવો પડ્યો હતો. મહર્ષિ વ્યાસના આશીર્વાદથી હસ્તિનાપુરની એક દાસીના (પરિચારિકા) ગર્ભમાંથી તેમનો જન્મ થયો હતો. દાસી પુત્ર હોવા છતાં તેઓ હસ્તિનાપુર રાજ્યના મહામંત્રી બન્યા અને તેમની બુદ્ધિ, અદભુત ન્યાયપ્રિયતા, નિખાલસતા અને ડહાપણ સમગ્ર આર્યવર્તમાં સર્વશ્રેષ્ઠ મનાતા હતા.<br><br>વિદુર કોઈના દબાણમાં આવ્યા વિના હંમેશા નિર્ભય બનીને સત્યની અને ધર્મની તરફેણમાં બોલતા હતા. તેમણે વારંવાર અંધ રાજા ધૃતરાષ્ટ્રને દુર્યોધનના અધર્મી કૃત્યો રોકવા, શકુનિના ષડયંત્રોથી દૂર રહેવા અને પાંડવોને તેમનો ન્યાયી હક આપવા ચેતવણી આપી હતી. જ્યારે લાક્ષાગૃહમાં પાંડવોને જીવતા સળગાવી દેવાનું કાવતરું ઘડાયું, ત્યારે વિદુરે જ અત્યંત ચતુરાઈથી મ્લેચ્છ (સાંકેતિક) ભાષામાં યુધિષ્ઠિરને ચેતવીને તેમના જીવ બચાવ્યા હતા અને ભોંયરું ખોદનારને મોકલ્યો હતો.<br><br>ધૃતરાષ્ટ્ર જ્યારે રાત્રે ચિંતાને કારણે ઊંઘી શકતા ન હતા, ત્યારે તેમણે વિદુરને બોલાવીને શાંતિનો ઉપાય પૂછ્યો હતો. આ સમયે વિદુરે ધૃતરાષ્ટ્રને રાજનીતિ, જીવન વ્યવસ્થાપન, સત્ય અને કર્તવ્ય વિશે જે મહાન ઉપદેશ આપ્યો, તે આજે પણ "વિદુર નીતિ" તરીકે ઓળખાય છે, જે ચાણક્ય નીતિ સમાન જ આદરણીય છે. ભગવાન શ્રી કૃષ્ણ જ્યારે શાંતિદૂત બનીને હસ્તિનાપુર આવ્યા ત્યારે તેમણે દુર્યોધનના મહેલના છપ્પન ભોગ ઠુકરાવીને, વિદુરની નાની ઝૂંપડીમાં પ્રેમથી બનાવેલી ભાજી ખાવાનું પસંદ કર્યું હતું.', 
+        shloka: 'यतो धर्मस्ततो जयः', 
+        family: { parents: 'મહર્ષિ વ્યાસ અને પરિચારિકા (દાસી)', spouse: 'પારસવી', siblings: 'ધૃતરાષ્ટ્ર, પાંડુ', children: 'માહિતી ઉપલબ્ધ નથી' } },
+      
+      { id: 'ashwatthama', name: 'અશ્વત્થામા', role: 'ચિરંજીવી', backTitle: 'અમર અને ક્રોધી યોદ્ધા', stat1: 'ક્રોધ અને અમરત્વ', stat2: 'દિવ્ય મણિ', quote: 'મારો ક્રોધ કુરુવંશ અને પાંડવોના બીજને બાળી નાખશે.', 
+        desc: 'અશ્વત્થામા ગુરુ દ્રોણાચાર્ય અને તેમની પત્ની કૃપી (કૃપાચાર્યની બહેન) ના એકમાત્ર પુત્ર હતા. દ્રોણાચાર્યની આકરી તપસ્યા પછી ભગવાન શિવના અંશથી તેમનો જન્મ થયો હતો. એવી કથા છે કે જન્મતાની સાથે જ તેમણે અશ્વ (ઘોડા) જેવી ઉચ્ચ ગર્જના કરી હતી તેથી તેમનું નામ અશ્વત્થામા પડ્યું. તેમના કપાળમાં જન્મથી જ એક અલૌકિક અને દિવ્ય મણિ હતો, જે તેમને ભૂખ, તરસ, થાક, રોગો અને શસ્ત્રોથી સુરક્ષિત રાખતો હતો અને તેમને અજેય બનાવતો હતો.<br><br>તેઓ કૌરવ પક્ષના મહાન અને અત્યંત શક્તિશાળી મહારથી હતા, અને દુર્યોધનના ખાસ મિત્રોમાંના એક હતા. યુદ્ધના ૧૫મા દિવસે જ્યારે "અશ્વત્થામા હણાયો" એવા ખોટા સમાચાર ફેલાવીને કપટથી પોતાના પિતા દ્રોણાચાર્યની હત્યા કરવામાં આવી, ત્યારે તેઓ ભયંકર ક્રોધ અને પ્રતિશોધની આગમાં ભભૂકી ઉઠ્યા. મહાભારત યુદ્ધના ૧૮મા દિવસે રાત્રે, અશ્વત્થામાએ છળકપટથી પાંડવોની છાવણીમાં ઘૂસીને ઊંઘતા દ્રૌપદીના પાંચેય પુત્રો (ઉપપાંડવો) ને પાંડવો સમજીને અને ધૃષ્ટદ્યુમ્નનો અત્યંત નિર્દયતાથી વધ કર્યો હતો.<br><br>જ્યારે પાંડવો તેમનો પીછો કરતા આવ્યા, ત્યારે પોતાના બચાવ માટે અશ્વત્થામાએ અર્જુન અને અભિમન્યુની પત્ની ઉત્તરાના ગર્ભ (પરીક્ષિત) પર બ્રહ્માસ્ત્ર ચલાવ્યું હતું. ભવિષ્યના નિર્દોષ બાળક પર શસ્ત્ર ચલાવવાના આ અત્યંત જઘન્ય અને કાયરતાપૂર્ણ અપરાધ માટે ભગવાન શ્રી કૃષ્ણે અશ્વત્થામાના કપાળમાંથી બળજબરીથી પેલો રક્ષક મણિ કાઢી લીધો અને તેને કઠોર શ્રાપ આપ્યો કે તે કળિયુગના અંત સુધી માથાના ઘાવથી લોહી વહેતી હાલતમાં, રોગોથી પીડાતો અને મૃત્યુ માટે તરફડતો પૃથ્વી પર એકલો ભટકતો રહેશે. તેઓ હિન્દુ માન્યતા મુજબના અષ્ટચિરંજીવીઓ માંથી એક મનાય છે.', 
+        shloka: 'अश्वत्थामा बलिर्व्यासो', 
+        family: { parents: 'દ્રોણાચાર્ય અને કૃપી', spouse: 'અપરિણીત', siblings: 'કોઈ નહીં', children: 'કોઈ નહીં' } }
+    ];
+
+    /* --- INITIALIZATION --- */
+    function init() {
+      const sanskarContainer = document.getElementById('sanskar-list');
+      sanskars.forEach((item, index) => {
+        const el = document.createElement('article');
+        el.className = 'timeline-item';
+        el.onclick = () => openModal('sanskar', index);
+        const shortDesc = item.desc.replace(/<br>/g, ' ').substring(0, 100) + '...';
+        el.innerHTML = `
+          <h3 class="timeline-title gujarati-text">${item.title}</h3>
+          <p class="timeline-gujarati gujarati-text" style="color:#ddd; margin-bottom:1rem;">${item.eng}</p>
+          <p class="timeline-desc gujarati-text">${shortDesc}</p>
+        `;
+        sanskarContainer.appendChild(el);
+      });
+
+      const pandavaContainer = document.getElementById('pandava-list');
+      pandavas.forEach((item, index) => {
+        pandavaContainer.appendChild(createCard(item, 'pandava', index));
+      });
+
+      const kauravaContainer = document.getElementById('kaurava-list');
+      kauravas.forEach((item, index) => {
+        kauravaContainer.appendChild(createCard(item, 'kaurava', index));
+      });
+
+      initCanvas();
+    }
+
+    function createCard(item, type, index) {
+      const el = document.createElement('article');
+      el.className = 'character-card';
+      el.onclick = () => openModal(type, index);
+      el.innerHTML = `
+        <div class="card-inner">
+          <div class="card-face card-front">
+              <h3 class="character-name gujarati-text">${item.name}</h3>
+              <p class="character-role gujarati-text">${item.role}</p>
+          </div>
+          <div class="card-face card-back">
+            <h4 class="card-back-title gujarati-text">◆ ${item.backTitle} ◆</h4>
+            <div class="stat-row">
+              <span class="stat-label gujarati-text">ગુણ</span>
+              <span class="stat-value gujarati-text">${item.stat1}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label gujarati-text">શસ્ત્ર/પ્રતીક</span>
+              <span class="stat-value gujarati-text">${item.stat2}</span>
+            </div>
+            <p class="quote-text">"${item.quote}"</p>
+          </div>
+        </div>
+      `;
+      return el;
+    }
+
+    /* --- NAVIGATION --- */
+    function enterSection(section) {
+      const portal = document.getElementById('portal');
+      portal.classList.add('lifted');
+      setTimeout(() => {
+        const target = document.getElementById(section + '-section');
+        target.scrollIntoView({ behavior: 'smooth' });
+      }, 800);
+    }
+
+    function backToPortal() {
+      const portal = document.getElementById('portal');
+      portal.classList.remove('lifted');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* --- MODAL --- */
+    function openModal(type, index) {
+      let data;
+      if (type === 'sanskar') data = sanskars[index];
+      else if (type === 'pandava') data = pandavas[index];
+      else if (type === 'kaurava') data = kauravas[index];
+
+      const modal = document.getElementById('modalOverlay');
+      const body = document.getElementById('modalBody');
+      const themeClass = type === 'sanskar' ? 'gold' : 'red';
+      
+      let htmlContent = `
+        <h2 class="modal-title ${themeClass} gujarati-text">${data.title || data.name}</h2>
+        <div class="modal-shloka gujarati-text">${data.shloka}</div>
+        <p class="modal-desc gujarati-text">${data.desc}</p>
+      `;
+
+      if ((type === 'pandava' || type === 'kaurava') && data.family) {
+        htmlContent += `
+          <div class="family-tree-container">
+            <h3 class="tree-title gujarati-text">પારિવારિક સંબંધો</h3>
+            <div class="tree-grid">
+              <div class="tree-node">
+                <span class="node-label gujarati-text">માતા / પિતા</span>
+                <span class="node-value gujarati-text">${data.family.parents}</span>
+              </div>
+              <div class="tree-node">
+                <span class="node-label gujarati-text">જીવનસાથી</span>
+                <span class="node-value gujarati-text">${data.family.spouse}</span>
+              </div>
+              <div class="tree-node">
+                <span class="node-label gujarati-text">ભાઈ / બહેન</span>
+                <span class="node-value gujarati-text">${data.family.siblings}</span>
+              </div>
+              <div class="tree-node">
+                <span class="node-label gujarati-text">સંતાન</span>
+                <span class="node-value gujarati-text">${data.family.children}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      body.innerHTML = htmlContent;
+
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('modalOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    /* --- LIVE CANVAS BACKGROUND --- */
+    function initCanvas() {
+      const canvas = document.getElementById('bgCanvas');
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      let particles = [];
+
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+
+      class Particle {
+        constructor() {
+          this.reset();
+        }
+        reset() {
+          this.x = Math.random() * width;
+          this.y = Math.random() * height;
+          this.size = Math.random() * 4 + 2; 
+          this.speedY = Math.random() * 0.5 + 0.1;
+          this.speedX = (Math.random() - 0.5) * 0.2;
+          this.life = Math.random(); 
+          this.color = Math.random() > 0.5 ? '212, 175, 55' : '139, 0, 0'; 
+        }
+        update() {
+          this.y -= this.speedY;
+          this.x += this.speedX;
+          this.life -= 0.002;
+          
+          if (this.y < 0 || this.life <= 0) this.reset();
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${this.color}, ${this.life * 0.6})`;
+          ctx.fill();
+        }
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => {
+          p.update();
+          p.draw();
+        });
+        requestAnimationFrame(animate);
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+
+      for (let i = 0; i < 100; i++) {
+        particles.push(new Particle());
+      }
+      animate();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+
+  </script>
+</body>
+</html>
